@@ -1,0 +1,14 @@
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<path d="M9.60001 18.24C9.60001 17.9749 9.81491 17.76 10.08 17.76H14.16C14.4251 17.76 14.64 17.9749 14.64 18.24V20.4C14.64 20.9302 14.2102 21.36 13.68 21.36H10.56C10.0298 21.36 9.60001 20.9302 9.60001 20.4V18.24Z" stroke="#744A30"/>
+<path d="M14.88 18.24C14.88 18.24 16.32 18.24 16.32 19.078C16.32 20.0277 14.88 19.9159 14.88 19.9159" stroke="#744A30" stroke-linecap="round"/>
+<rect x="9.60001" y="6.48" width="4.8" height="9.12" rx="0.48" stroke="#744A30"/>
+<rect x="9.60001" y="10.8" width="4.8" height="4.8" rx="0.48" stroke="#744A30"/>
+<rect x="10.32" y="15.6" width="3.36" height="0.72" rx="0.36" stroke="#744A30"/>
+<path d="M8.16 15.6H15.84" stroke="#744A30" stroke-linecap="round"/>
+<path d="M12.72 7.92L14.4 7.92" stroke="#744A30" stroke-linecap="round"/>
+<path d="M12.72 9.36L14.4 9.36" stroke="#744A30" stroke-linecap="round"/>
+<path d="M12.72 12.24L14.4 12.24" stroke="#744A30" stroke-linecap="round"/>
+<path d="M12.72 13.68L14.4 13.68" stroke="#744A30" stroke-linecap="round"/>
+<rect x="11.04" y="2.64" width="1.92" height="3.84" rx="0.48" stroke="#744A30"/>
+<rect x="9.60001" y="2.64" width="4.8" height="0.48" rx="0.24" stroke="#744A30" stroke-width="0.96"/>
+</svg>

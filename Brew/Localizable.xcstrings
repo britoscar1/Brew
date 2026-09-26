@@ -1,0 +1,710 @@
+{
+  "sourceLanguage" : "en",
+  "strings" : {
+    "%lld" : {
+
+    },
+    "%lld of 5" : {
+
+    },
+    "•" : {
+
+    },
+    "°C" : {
+
+    },
+    "2" : {
+
+    },
+    "22 clicks, 4.2, or medium-fine" : {
+
+    },
+    "45" : {
+
+    },
+    "Acidity" : {
+
+    },
+    "Add a coffee in your library first." : {
+
+    },
+    "Add Coffee" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add Coffee"
+          }
+        }
+      }
+    },
+    "Add your first coffee" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Add your first coffee"
+          }
+        }
+      }
+    },
+    "Added" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Added"
+          }
+        }
+      }
+    },
+    "AeroPress" : {
+
+    },
+    "Archive" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Archive"
+          }
+        }
+      }
+    },
+    "Archive %@?" : {
+
+    },
+    "Archived" : {
+
+    },
+    "Archived Coffees" : {
+
+    },
+    "Balanced" : {
+
+    },
+    "Bean Information" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Bean Information"
+          }
+        }
+      }
+    },
+    "Beverage" : {
+
+    },
+    "Beverage yield" : {
+
+    },
+    "Bitter" : {
+
+    },
+    "Bitterness" : {
+
+    },
+    "Brew" : {
+
+    },
+    "Brew History" : {
+
+    },
+    "Brew settings" : {
+
+    },
+    "Brewed" : {
+
+    },
+    "Bright" : {
+
+    },
+    "Cancel" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Cancel"
+          }
+        }
+      }
+    },
+    "Choose a coffee" : {
+
+    },
+    "Chooses this coffee to brew" : {
+
+    },
+    "Coffee" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coffee"
+          }
+        }
+      }
+    },
+    "Coffees" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Coffees"
+          }
+        }
+      }
+    },
+    "Coffees you archive stay here with their history." : {
+
+    },
+    "Couldn't save brew" : {
+
+    },
+    "Couldn't save coffee" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Couldn't save coffee"
+          }
+        }
+      }
+    },
+    "Couldn't save evaluation" : {
+
+    },
+    "Dark" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Dark"
+          }
+        }
+      }
+    },
+    "Decrease" : {
+
+    },
+    "Disliked" : {
+
+    },
+    "Done" : {
+
+    },
+    "Dose" : {
+
+    },
+    "Duration" : {
+
+    },
+    "Edit" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit"
+          }
+        }
+      }
+    },
+    "Edit Coffee" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Edit Coffee"
+          }
+        }
+      }
+    },
+    "Edit Evaluation" : {
+
+    },
+    "Edits this rating" : {
+
+    },
+    "Espresso" : {
+
+    },
+    "Evaluate" : {
+
+    },
+    "Flat" : {
+
+    },
+    "French Press" : {
+
+    },
+    "g" : {
+
+    },
+    "Good" : {
+
+    },
+    "Grind" : {
+
+    },
+    "Grind coarser" : {
+
+    },
+    "Grind finer" : {
+
+    },
+    "Grind setting" : {
+
+    },
+    "Harsh" : {
+
+    },
+    "How are you brewing?" : {
+
+    },
+    "How did it taste?" : {
+
+    },
+    "How much you liked it" : {
+
+    },
+    "Include roast date" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Include roast date"
+          }
+        }
+      }
+    },
+    "Increase" : {
+
+    },
+    "Intense" : {
+
+    },
+    "Keep as is" : {
+
+    },
+    "Keep the coffees you enjoy in one place." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keep the coffees you enjoy in one place."
+          }
+        }
+      }
+    },
+    "Keep the rest the same" : {
+
+    },
+    "Less %@" : {
+
+    },
+    "Less acidic" : {
+
+    },
+    "Less bitter" : {
+
+    },
+    "Library" : {
+
+    },
+    "Light" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Light"
+          }
+        }
+      }
+    },
+    "Loved" : {
+
+    },
+    "Low" : {
+
+    },
+    "Medium" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medium"
+          }
+        }
+      }
+    },
+    "Medium Dark" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medium Dark"
+          }
+        }
+      }
+    },
+    "Medium Light" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Medium Light"
+          }
+        }
+      }
+    },
+    "min" : {
+
+    },
+    "More" : {
+
+    },
+    "More %@" : {
+
+    },
+    "Name" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name"
+          }
+        }
+      }
+    },
+    "Name, origin and roast level are required." : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Name, origin and roast level are required."
+          }
+        }
+      }
+    },
+    "Next time" : {
+
+    },
+    "No archived coffees" : {
+
+    },
+    "No brews logged yet." : {
+
+    },
+    "No change" : {
+
+    },
+    "No clear change" : {
+
+    },
+    "No coffees yet" : {
+
+    },
+    "None" : {
+
+    },
+    "Notes" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes"
+          }
+        }
+      }
+    },
+    "Notes (optional)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Notes (optional)"
+          }
+        }
+      }
+    },
+    "Nothing to brew yet" : {
+
+    },
+    "OK" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "OK"
+          }
+        }
+      }
+    },
+    "Okay" : {
+
+    },
+    "Opens coffee details" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Opens coffee details"
+          }
+        }
+      }
+    },
+    "Origin" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Origin"
+          }
+        }
+      }
+    },
+    "Overall" : {
+
+    },
+    "Poor" : {
+
+    },
+    "Process" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Process"
+          }
+        }
+      }
+    },
+    "Process (optional)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Process (optional)"
+          }
+        }
+      }
+    },
+    "Rates this brew" : {
+
+    },
+    "Rating" : {
+
+    },
+    "Ratio" : {
+
+    },
+    "Recipe" : {
+
+    },
+    "Restore" : {
+
+    },
+    "Roast" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roast"
+          }
+        }
+      }
+    },
+    "Roast date" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roast date"
+          }
+        }
+      }
+    },
+    "Roast level" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roast level"
+          }
+        }
+      }
+    },
+    "Roaster" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roaster"
+          }
+        }
+      }
+    },
+    "Roaster (optional)" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Roaster (optional)"
+          }
+        }
+      }
+    },
+    "s" : {
+
+    },
+    "Save" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Save"
+          }
+        }
+      }
+    },
+    "See all" : {
+
+    },
+    "Select roast level" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Select roast level"
+          }
+        }
+      }
+    },
+    "Sharp" : {
+
+    },
+    "Shows its recommendation" : {
+
+    },
+    "Strength" : {
+
+    },
+    "Strong" : {
+
+    },
+    "Stronger" : {
+
+    },
+    "Temperature" : {
+
+    },
+    "There isn't one clear adjustment based on this evaluation. Try repeating the brew once more before changing the recipe." : {
+
+    },
+    "This brew already tasted strong, so change the grind only slightly and see how the next cup lands. Keep everything else the same." : {
+
+    },
+    "This brew leaned acidic. A slightly finer grind may increase extraction. Keep the coffee amount, water and temperature unchanged." : {
+
+    },
+    "This brew leaned bitter. A slightly coarser grind may reduce extraction. Keep the other settings unchanged." : {
+
+    },
+    "This brew tasted stronger than you wanted. Try slightly more water while keeping the coffee dose, grind and temperature unchanged." : {
+
+    },
+    "This brew tasted weaker than you wanted. Try slightly less water while keeping the coffee dose, grind and temperature unchanged." : {
+
+    },
+    "This coffee is archived" : {
+
+    },
+    "This espresso tasted stronger than you wanted. Try a slightly larger beverage yield while keeping the dose and grind unchanged." : {
+
+    },
+    "This espresso tasted weaker than you wanted. Try a slightly smaller beverage yield while keeping the dose and grind unchanged." : {
+
+    },
+    "Time" : {
+
+    },
+    "Unknown method" : {
+
+    },
+    "Unknown roast" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Unknown roast"
+          }
+        }
+      }
+    },
+    "V60" : {
+
+    },
+    "Water" : {
+
+    },
+    "Watery" : {
+
+    },
+    "Weak" : {
+
+    },
+    "Weaker" : {
+
+    },
+    "What would you improve?" : {
+
+    },
+    "Why" : {
+
+    },
+    "You can restore it later from Archived Coffees." : {
+
+    },
+    "You enjoyed this brew. Keep the current settings so you can reproduce it." : {
+
+    },
+    "Your brew couldn't be saved. Please try again." : {
+
+    },
+    "Your coffee couldn't be saved. Please try again." : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your coffee couldn't be saved. Please try again."
+          }
+        }
+      }
+    },
+    "Your coffee library" : {
+      "extractionState" : "stale",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Your coffee library"
+          }
+        }
+      }
+    },
+    "Your coffees" : {
+
+    },
+    "Your evaluation couldn't be saved. Please try again." : {
+
+    },
+    "Your feedback points in more than one direction, so there isn't one clear adjustment to recommend. Try repeating the brew once more before changing the recipe." : {
+
+    }
+  },
+  "version" : "1.0"
+}
