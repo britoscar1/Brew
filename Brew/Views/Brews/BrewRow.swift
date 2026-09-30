@@ -18,7 +18,7 @@ struct BrewRow: View {
 
                 Spacer()
 
-                Text(brew.completedAt, format: .dateTime.month(.abbreviated).day())
+                Text(brew.sortDate, format: .dateTime.month(.abbreviated).day())
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

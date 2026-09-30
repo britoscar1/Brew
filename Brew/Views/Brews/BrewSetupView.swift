@@ -38,8 +38,6 @@ struct BrewSetupView: View {
                         .font(.headline)
                 }
                 .padding(.vertical, 4)
-
-                DatePicker("Brewed", selection: $setup.completedAt)
             }
 
             Section("Dose") {
@@ -73,7 +71,7 @@ struct BrewSetupView: View {
             }
 
             Section("Time") {
-                LabeledContent("Duration") {
+                LabeledContent("Target time") {
                     HStack(spacing: 4) {
                         TextField("2", value: $setup.durationMinutes, format: .number)
                             .keyboardType(.numberPad)
@@ -97,8 +95,8 @@ struct BrewSetupView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    if let brew = setup.save(in: modelContext) {
+                Button("Continue") {
+                    if let brew = setup.saveDraft(in: modelContext) {
                         onSaved(brew)
                     } else {
                         showsSaveError = true

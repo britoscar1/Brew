@@ -114,9 +114,6 @@
     "Brew settings" : {
 
     },
-    "Brewed" : {
-
-    },
     "Bright" : {
 
     },
@@ -160,6 +157,9 @@
     "Coffees you archive stay here with their history." : {
 
     },
+    "Continue" : {
+
+    },
     "Couldn't save brew" : {
 
     },
@@ -198,9 +198,6 @@
     "Dose" : {
 
     },
-    "Duration" : {
-
-    },
     "Edit" : {
       "localizations" : {
         "en" : {
@@ -231,6 +228,9 @@
 
     },
     "Evaluate" : {
+
+    },
+    "Finish" : {
 
     },
     "Flat" : {
@@ -469,6 +469,12 @@
     "Overall" : {
 
     },
+    "Pause" : {
+
+    },
+    "Paused" : {
+
+    },
     "Poor" : {
 
     },
@@ -505,6 +511,9 @@
 
     },
     "Restore" : {
+
+    },
+    "Resume" : {
 
     },
     "Roast" : {
@@ -590,6 +599,9 @@
     "Shows its recommendation" : {
 
     },
+    "Start" : {
+
+    },
     "Strength" : {
 
     },
@@ -597,6 +609,9 @@
 
     },
     "Stronger" : {
+
+    },
+    "Target time" : {
 
     },
     "Temperature" : {

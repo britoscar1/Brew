@@ -174,6 +174,7 @@ private func text(from value: RecommendationValue?) -> String? {
             method: .v60,
             coffeeGrams: 15,
             grindDisplayValue: "Medium",
+            status: .completed,
             completedAt: .now,
             waterGrams: 250
         )
@@ -198,4 +199,187 @@ private func text(from value: RecommendationValue?) -> String? {
         #expect(recommendations.count == 1)
         #expect(brew.recommendation?.ruleID == "GOAL_STRONGER_MANUAL")
     }
+}
+
+private let t0 = Date(timeIntervalSinceReferenceDate: 1_000_000)
+private let timer = BrewTimerEngine()
+
+private func elapsed(_ status: BrewStatus, started: Date? = t0, paused: Date? = nil,
+                     accumulated: Double = 0, actual: Double? = nil, at seconds: Double) -> Double {
+    timer.elapsedSeconds(status: status, startedAt: started, pausedAt: paused,
+                         accumulatedPausedSeconds: accumulated, actualDurationSeconds: actual,
+                         now: t0.addingTimeInterval(seconds))
+}
+
+@Test func runningElapsedSubtractsPastPauses() {
+    #expect(elapsed(.inProgress, accumulated: 20, at: 100) == 80)
+}
+
+@Test func pausedElapsedFreezesAtPauseInstant() {
+    let paused = t0.addingTimeInterval(60)
+    #expect(elapsed(.inProgress, paused: paused, at: 60) == 60)
+    #expect(elapsed(.inProgress, paused: paused, at: 3600) == 60)
+}
+
+@Test func completedElapsedIsStoredDuration() {
+    #expect(elapsed(.completed, actual: 95, at: 9999) == 95)
+}
+
+@Test func elapsedIsNeverNegative() {
+    #expect(elapsed(.inProgress, accumulated: 500, at: 10) == 0)
+    #expect(elapsed(.inProgress, at: -30) == 0)
+    #expect(elapsed(.completed, actual: -5, at: 0) == 0)
+    #expect(elapsed(.draft, started: nil, at: 10) == 0)
+}
+
+@Test func elapsedIsRebuiltFromTimestampsAfterBackground() {
+    #expect(elapsed(.inProgress, at: 5) == 5)
+    #expect(elapsed(.inProgress, at: 905) == 905)
+}
+
+@MainActor
+private final class Clock {
+    var date = t0
+    func advance(_ seconds: Double) { date = date.addingTimeInterval(seconds) }
+}
+
+@MainActor
+private func makeSession(clock: Clock) throws -> (BrewSessionController, Brew, ModelContainer) {
+    let schema = Schema([Coffee.self, Brew.self, TasteEvaluation.self, BrewRecommendation.self])
+    let container = try ModelContainer(for: schema,
+                                       configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)])
+    let context = container.mainContext
+    let coffee = Coffee(name: "Test", origin: "Test", roastLevel: .medium)
+    let brew = Brew(coffee: coffee, method: .v60, coffeeGrams: 15, grindDisplayValue: "Medium",
+                    createdAt: t0, waterGrams: 250, targetDurationSeconds: 180)
+    context.insert(coffee)
+    context.insert(brew)
+    try context.save()
+    return (BrewSessionController(brew: brew, context: context, now: { clock.date }), brew, container)
+}
+
+@Test @MainActor func startMovesDraftToRunningOnce() throws {
+    let clock = Clock()
+    let (session, brew, container) = try makeSession(clock: clock)
+    defer { withExtendedLifetime(container) {} }
+    session.start()
+    #expect(brew.status == .inProgress)
+    #expect(brew.startedAt == t0)
+
+    clock.advance(30)
+    session.start()
+    #expect(brew.startedAt == t0)
+}
+
+@Test @MainActor func pauseAndResumeDoNotCountPauseTwice() throws {
+    let clock = Clock()
+    let (session, brew, container) = try makeSession(clock: clock)
+    defer { withExtendedLifetime(container) {} }
+    session.start()
+    clock.advance(60)
+    session.pause()
+    clock.advance(10)
+    session.pause()
+    #expect(brew.pausedAt == t0.addingTimeInterval(60))
+
+    clock.advance(20)
+    session.resume()
+    session.resume()
+    #expect(brew.pausedAt == nil)
+    #expect(brew.accumulatedPausedSeconds == 30)
+    #expect(brew.elapsedSeconds(at: clock.date) == 60)
+}
+
+@Test @MainActor func finishWhilePausedExcludesPausedTime() throws {
+    let clock = Clock()
+    let (session, brew, container) = try makeSession(clock: clock)
+    defer { withExtendedLifetime(container) {} }
+    session.start()
+    clock.advance(90)
+    session.pause()
+    clock.advance(600)
+    #expect(session.finish())
+    #expect(brew.status == .completed)
+    #expect(brew.actualDurationSeconds == 90)
+    #expect(brew.completedAt == clock.date)
+}
+
+@Test @MainActor func finishWhileRunningStoresElapsed() throws {
+    let clock = Clock()
+    let (session, brew, container) = try makeSession(clock: clock)
+    defer { withExtendedLifetime(container) {} }
+    session.start()
+    clock.advance(45)
+    session.pause()
+    clock.advance(15)
+    session.resume()
+    clock.advance(30)
+    session.finish()
+    #expect(brew.actualDurationSeconds == 75)
+}
+
+@Test @MainActor func completedBrewCannotBeResumedOrRestarted() throws {
+    let clock = Clock()
+    let (session, brew, container) = try makeSession(clock: clock)
+    defer { withExtendedLifetime(container) {} }
+    session.start()
+    clock.advance(60)
+    session.finish()
+    let completedAt = brew.completedAt
+
+    clock.advance(60)
+    session.resume()
+    session.pause()
+    session.start()
+    #expect(!session.finish())
+    #expect(brew.status == .completed)
+    #expect(brew.pausedAt == nil)
+    #expect(brew.completedAt == completedAt)
+    #expect(brew.actualDurationSeconds == 60)
+}
+
+@Test @MainActor func draftCannotBePausedOrFinished() throws {
+    let clock = Clock()
+    let (session, brew, container) = try makeSession(clock: clock)
+    defer { withExtendedLifetime(container) {} }
+    session.pause()
+    session.resume()
+    #expect(!session.finish())
+    #expect(brew.status == .draft)
+    #expect(brew.startedAt == nil)
+}
+
+@Test @MainActor func setupCreatesPersistedDraftHiddenFromHistoryUntilFinished() throws {
+    let schema = Schema([Coffee.self, Brew.self, TasteEvaluation.self, BrewRecommendation.self])
+    let container = try ModelContainer(for: schema,
+                                       configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)])
+    let context = container.mainContext
+    let coffee = Coffee(name: "Test", origin: "Test", roastLevel: .medium)
+    context.insert(coffee)
+
+    let setup = BrewSetupViewModel(coffee: coffee, method: .v60)
+    setup.grindDisplayValue = "Medium"
+    setup.durationMinutes = 3
+    setup.durationSeconds = 15
+    let brew = try #require(setup.saveDraft(in: context))
+
+    #expect(brew.status == .draft)
+    #expect(brew.targetDurationSeconds == 195)
+    #expect(brew.actualDurationSeconds == nil)
+    #expect(try context.fetch(FetchDescriptor<Brew>()).count == 1)
+    #expect(coffee.completedBrews.isEmpty)
+
+    let session = BrewSessionController(brew: brew, context: context)
+    session.start()
+    #expect(coffee.completedBrews.isEmpty)
+    session.finish()
+    #expect(coffee.completedBrews.count == 1)
+}
+
+@Test func brewsWithoutStatusDefaultToCompleted() {
+    let brew = Brew(coffee: Coffee(name: "A", origin: "B", roastLevel: .medium), method: .v60,
+                    coffeeGrams: 15, grindDisplayValue: "Medium", status: .completed,
+                    completedAt: t0, waterGrams: 250)
+    brew.statusRawValue = "unknown"
+    #expect(brew.status == .completed)
 }

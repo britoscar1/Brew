@@ -24,6 +24,10 @@ class Coffee {
     @Relationship(deleteRule: .cascade, inverse: \Brew.coffee)
     var brews: [Brew] = []
 
+    var completedBrews: [Brew] {
+        brews.filter { $0.status == .completed }.sorted { $0.sortDate > $1.sortDate }
+    }
+
     var roastLevel: RoastLevel? {
         RoastLevel(rawValue: roastLevelRawValue)
     }

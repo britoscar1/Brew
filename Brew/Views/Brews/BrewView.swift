@@ -11,6 +11,7 @@ import SwiftData
 enum BrewStep: Hashable {
     case chooseCoffee(BrewMethod)
     case setup(Coffee, BrewMethod)
+    case brewMode(Brew)
     case evaluate(Brew)
     case recommendation(Brew)
 }
@@ -54,8 +55,10 @@ struct BrewView: View {
                     BrewCoffeePickerView(method: method)
                 case let .setup(coffee, method):
                     BrewSetupView(coffee: coffee, method: method) { brew in
-                        path.append(.evaluate(brew))
+                        path.append(.brewMode(brew))
                     }
+                case let .brewMode(brew):
+                    BrewModeView(brew: brew) { path = [.evaluate($0)] }
                 case let .evaluate(brew):
                     TasteEvaluationView(brew: brew) { path.append(.recommendation($0)) }
                 case let .recommendation(brew):

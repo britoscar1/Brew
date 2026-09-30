@@ -23,7 +23,6 @@ final class BrewSetupViewModel {
     var grindDisplayValue = ""
     var durationMinutes: Int?
     var durationSeconds: Int?
-    var completedAt = Date()
 
     init(coffee: Coffee, method: BrewMethod) {
         self.coffee = coffee
@@ -60,7 +59,7 @@ final class BrewSetupViewModel {
         }
     }
 
-    func save(in context: ModelContext) -> Brew? {
+    func saveDraft(in context: ModelContext) -> Brew? {
         guard canSave, let coffeeGrams else { return nil }
 
         let brew = Brew(
@@ -68,11 +67,10 @@ final class BrewSetupViewModel {
             method: method,
             coffeeGrams: coffeeGrams,
             grindDisplayValue: grindDisplayValue.trimmingCharacters(in: .whitespacesAndNewlines),
-            completedAt: completedAt,
             waterGrams: usesBeverageYield ? nil : waterGrams,
             beverageGrams: usesBeverageYield ? beverageGrams : nil,
             temperatureCelsius: temperatureCelsius,
-            actualDurationSeconds: totalDurationSeconds
+            targetDurationSeconds: targetDurationSeconds
         )
         context.insert(brew)
 
@@ -85,7 +83,7 @@ final class BrewSetupViewModel {
         }
     }
 
-    private var totalDurationSeconds: Double? {
+    private var targetDurationSeconds: Double? {
         guard durationMinutes != nil || durationSeconds != nil else { return nil }
         return Double((durationMinutes ?? 0) * 60 + (durationSeconds ?? 0))
     }

@@ -146,7 +146,7 @@ struct CoffeeDetailView: View {
     }
 
     private var brews: [Brew] {
-        coffee.brews.sorted { $0.completedAt > $1.completedAt }
+        coffee.completedBrews
     }
 
     private var header: some View {
@@ -212,7 +212,7 @@ private struct BrewHistoryView: View {
     }
 
     private var brews: [Brew] {
-        coffee.brews.sorted { $0.completedAt > $1.completedAt }
+        coffee.completedBrews
     }
 }
 
