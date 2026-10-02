@@ -13,34 +13,30 @@ struct BrewSetupView: View {
     @State private var setup: BrewSetupViewModel
     @State private var showsSaveError = false
 
-    private let coffee: Coffee
-    private let method: BrewMethod
     private let onSaved: (Brew) -> Void
 
-    init(coffee: Coffee, method: BrewMethod, onSaved: @escaping (Brew) -> Void) {
-        self.coffee = coffee
-        self.method = method
+    init(setup: BrewSetupViewModel, onSaved: @escaping (Brew) -> Void) {
         self.onSaved = onSaved
-        _setup = State(initialValue: BrewSetupViewModel(coffee: coffee, method: method))
+        _setup = State(initialValue: setup)
     }
 
     var body: some View {
         Form {
             Section {
                 HStack(spacing: 12) {
-                    Image(method.iconName)
+                    Image(setup.method.iconName)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 40, height: 40)
                         .accessibilityHidden(true)
 
-                    Text(method.title)
+                    Text(setup.method.title)
                         .font(.headline)
                 }
                 .padding(.vertical, 4)
             }
 
-            Section("Dose") {
+            Section {
                 LabeledContent("Coffee") {
                     amountField("18", value: $setup.coffeeGrams, unit: "g")
                 }
@@ -62,12 +58,24 @@ struct BrewSetupView: View {
                 if let ratio = setup.ratio {
                     LabeledContent("Ratio", value: "1:\(ratio.formatted(.number.precision(.fractionLength(1))))")
                 }
+            } header: {
+                Text("Dose")
+            } footer: {
+                if let adjustment = setup.adjustment, adjustment.variable != .grind {
+                    adjustmentFooter(adjustment)
+                }
             }
 
-            Section("Grind setting") {
+            Section {
                 TextField("22 clicks, 4.2, or medium-fine", text: $setup.grindDisplayValue)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+            } header: {
+                Text("Grind setting")
+            } footer: {
+                if let adjustment = setup.adjustment, adjustment.variable == .grind {
+                    adjustmentFooter(adjustment)
+                }
             }
 
             Section("Time") {
@@ -91,7 +99,7 @@ struct BrewSetupView: View {
         }
         .scrollContentBackground(.hidden)
         .background(Color("CoffeeCanvas"))
-        .navigationTitle(coffee.name)
+        .navigationTitle(setup.coffee.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
@@ -110,6 +118,14 @@ struct BrewSetupView: View {
         } message: {
             Text("Your brew couldn't be saved. Please try again.")
         }
+    }
+
+    private func adjustmentFooter(_ adjustment: BrewAdjustment) -> some View {
+        Label(
+            "Previously \(adjustment.previousDisplayValue) · \(adjustment.direction.title)",
+            systemImage: "arrow.triangle.2.circlepath")
+            .font(.footnote)
+            .foregroundStyle(Color("CoffeeTint"))
     }
 
     private func amountField(_ placeholder: String, value: Binding<Double?>, unit: LocalizedStringKey) -> some View {

@@ -12,9 +12,9 @@ import SwiftData
 @MainActor
 @Observable
 final class BrewSetupViewModel {
-    private let coffee: Coffee
-
+    let coffee: Coffee
     let method: BrewMethod
+    let adjustment: BrewAdjustment?
 
     var coffeeGrams: Double?
     var waterGrams: Double?
@@ -27,12 +27,42 @@ final class BrewSetupViewModel {
     init(coffee: Coffee, method: BrewMethod) {
         self.coffee = coffee
         self.method = method
+        adjustment = nil
 
         let defaults = method.defaults
         coffeeGrams = defaults.coffeeGrams
         waterGrams = defaults.waterGrams
         beverageGrams = defaults.beverageGrams
         temperatureCelsius = defaults.temperatureCelsius
+    }
+
+    init?(repeating source: Brew, adjustment: BrewAdjustment? = nil) {
+        guard let coffee = source.coffee, let method = source.method else { return nil }
+
+        self.coffee = coffee
+        self.method = method
+        self.adjustment = adjustment
+
+        coffeeGrams = source.coffeeGrams
+        waterGrams = source.waterGrams
+        beverageGrams = source.beverageGrams
+        temperatureCelsius = source.temperatureCelsius
+        grindDisplayValue = source.grindDisplayValue
+
+        if let target = source.targetDurationSeconds, target > 0 {
+            let total = Int(target)
+            durationMinutes = total / 60
+            durationSeconds = total % 60
+        }
+
+        guard let adjustment else { return }
+
+        switch adjustment.variable {
+        case .grind: grindDisplayValue = ""
+        case .water: waterGrams = adjustment.suggestedGrams
+        case .beverageYield: beverageGrams = adjustment.suggestedGrams
+        case .none: break
+        }
     }
 
     var usesBeverageYield: Bool {

@@ -54,7 +54,7 @@ struct BrewView: View {
                 case let .chooseCoffee(method):
                     BrewCoffeePickerView(method: method)
                 case let .setup(coffee, method):
-                    BrewSetupView(coffee: coffee, method: method) { brew in
+                    BrewSetupView(setup: BrewSetupViewModel(coffee: coffee, method: method)) { brew in
                         path.append(.brewMode(brew))
                     }
                 case let .brewMode(brew):
