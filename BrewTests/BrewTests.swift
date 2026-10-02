@@ -383,3 +383,54 @@ private func makeSession(clock: Clock) throws -> (BrewSessionController, Brew, M
     brew.statusRawValue = "unknown"
     #expect(brew.status == .completed)
 }
+
+@MainActor
+private func completedBrew(method: BrewMethod = .v60, water: Double? = 250,
+                           beverage: Double? = nil, temperature: Double? = 94) -> Brew {
+    Brew(coffee: Coffee(name: "A", origin: "B", roastLevel: .medium), method: method,
+         coffeeGrams: 15, grindDisplayValue: "Medium", status: .completed,
+         completedAt: t0, waterGrams: water, beverageGrams: beverage,
+         temperatureCelsius: temperature)
+}
+
+@Test @MainActor func settingsWithoutRecommendationShowEveryStoredValue() {
+    let titles = BrewSetting.all(for: completedBrew()).map(\.title)
+
+    #expect(titles == ["Coffee", "Water", "Grind", "Temperature"])
+}
+
+@Test @MainActor func espressoSettingsShowBeverageInsteadOfWater() {
+    let brew = completedBrew(method: .espresso, water: nil, beverage: 36)
+    let titles = BrewSetting.all(for: brew).map(\.title)
+
+    #expect(!titles.contains("Water"))
+    #expect(titles.contains("Beverage"))
+}
+
+@Test @MainActor func settingsHideTheVariableTheRecommendationChanges() throws {
+    let brew = completedBrew()
+    let decision = try #require(engine.recommend(for: input(strength: 1, goal: .stronger)))
+    let recommendation = BrewRecommendation(brew: brew, decision: decision)
+    let titles = BrewSetting.all(for: brew, recommendation: recommendation).map(\.title)
+
+    #expect(decision.variable == .water)
+    #expect(!titles.contains("Water"))
+    #expect(titles.contains("Grind"))
+}
+
+@Test @MainActor func durationFormatsMinutesAndSeconds() {
+    #expect(BrewSetting.duration(0) == "0:00")
+    #expect(BrewSetting.duration(168) == "2:48")
+    #expect(BrewSetting.duration(725) == "12:05")
+}
+
+@Test @MainActor func tasteDimensionsReadTheirOwnValue() {
+    let evaluation = TasteEvaluation(brew: completedBrew(), acidityValue: 1, bitternessValue: 2,
+                                     strengthValue: 4, overallValue: 5)
+
+    #expect(TasteDimension.acidity.value(in: evaluation) == 1)
+    #expect(TasteDimension.bitterness.value(in: evaluation) == 2)
+    #expect(TasteDimension.strength.value(in: evaluation) == 4)
+    #expect(TasteDimension.overall.value(in: evaluation) == 5)
+    #expect(TasteDimension.allCases.filter(\.isCumulative) == [.overall])
+}

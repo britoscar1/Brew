@@ -16,7 +16,6 @@ struct CoffeeDetailView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var showsEditCoffee = false
     @State private var showsArchiveConfirmation = false
-    @State private var brewToEvaluate: Brew?
 
     var body: some View {
         List {
@@ -66,13 +65,13 @@ struct CoffeeDetailView: View {
                         .foregroundStyle(.secondary)
                 } else {
                     ForEach(brews.prefix(3)) { brew in
-                        Button {
-                            brewToEvaluate = brew
+                        NavigationLink {
+                            BrewDetailView(brew: brew)
                         } label: {
                             BrewRow(brew: brew)
                         }
                         .buttonStyle(.plain)
-                        .accessibilityHint(brew.tasteEvaluation == nil ? "Rates this brew" : "Edits this rating")
+                        .accessibilityHint("Opens brew details")
                     }
 
                     if brews.count > 3 {
@@ -123,9 +122,6 @@ struct CoffeeDetailView: View {
                     showsEditCoffee = true
                 }
             }
-        }
-        .sheet(item: $brewToEvaluate) { brew in
-            EvaluationFlow(brew: brew) { brewToEvaluate = nil }
         }
         .sheet(isPresented: $showsEditCoffee) {
             CoffeeFormView(coffee: coffee)
@@ -187,18 +183,16 @@ struct CoffeeDetailView: View {
 private struct BrewHistoryView: View {
     let coffee: Coffee
 
-    @State private var brewToEvaluate: Brew?
-
     var body: some View {
         List {
             ForEach(brews) { brew in
-                Button {
-                    brewToEvaluate = brew
+                NavigationLink {
+                    BrewDetailView(brew: brew)
                 } label: {
                     BrewRow(brew: brew)
                 }
                 .buttonStyle(.plain)
-                .accessibilityHint(brew.tasteEvaluation == nil ? "Rates this brew" : "Shows its recommendation")
+                .accessibilityHint("Opens brew details")
             }
         }
         .contentMargins(.top, 12, for: .scrollContent)
@@ -206,9 +200,6 @@ private struct BrewHistoryView: View {
         .background(Color("CoffeeCanvas"))
         .navigationTitle("Brew History")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(item: $brewToEvaluate) { brew in
-            EvaluationFlow(brew: brew) { brewToEvaluate = nil }
-        }
     }
 
     private var brews: [Brew] {

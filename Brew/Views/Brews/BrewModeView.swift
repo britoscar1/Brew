@@ -75,7 +75,7 @@ struct BrewModeView: View {
     private var timer: some View {
         VStack(spacing: 6) {
             TimelineView(.periodic(from: .now, by: 0.25)) { context in
-                Text(format(brew.elapsedSeconds(at: context.date)))
+                Text(BrewSetting.duration(brew.elapsedSeconds(at: context.date)))
                     .font(.system(size: 72, weight: .semibold, design: .rounded))
                     .monospacedDigit()
                     .minimumScaleFactor(0.5)
@@ -92,29 +92,18 @@ struct BrewModeView: View {
     }
 
     private var details: some View {
-        VStack(spacing: 12) {
-            if let target = brew.targetDurationSeconds {
-                row("Target time", format(target))
-            }
+        BrewSettingsCard(settings: settings)
+    }
 
-            row("Coffee", grams(brew.coffeeGrams))
+    private var settings: [BrewSetting] {
+        var items: [BrewSetting] = []
 
-            if let water = brew.waterGrams {
-                row("Water", grams(water))
-            }
-
-            if let beverage = brew.beverageGrams {
-                row("Beverage", grams(beverage))
-            }
-
-            if let temperature = brew.temperatureCelsius {
-                row("Temperature", "\(temperature.formatted(.number.precision(.fractionLength(0...1)))) °C")
-            }
-
-            row("Grind setting", brew.grindDisplayValue)
+        if let target = brew.targetDurationSeconds {
+            items.append(BrewSetting(title: String(localized: "Target time"),
+                                     value: BrewSetting.duration(target), icon: "target"))
         }
-        .padding(18)
-        .background(Color("CoffeeCrema").opacity(0.2), in: RoundedRectangle(cornerRadius: 20))
+
+        return items + BrewSetting.all(for: brew)
     }
 
     @ViewBuilder
@@ -156,21 +145,5 @@ struct BrewModeView: View {
         } label: {
             Text("Finish").frame(maxWidth: .infinity)
         }
-    }
-
-    private func row(_ title: LocalizedStringKey, _ value: String) -> some View {
-        LabeledContent(title) {
-            Text(value)
-        }
-        .font(.subheadline)
-    }
-
-    private func grams(_ value: Double) -> String {
-        "\(value.formatted(.number.precision(.fractionLength(0...1)))) g"
-    }
-
-    private func format(_ seconds: Double) -> String {
-        let total = Int(seconds)
-        return String(format: "%d:%02d", total / 60, total % 60)
     }
 }
