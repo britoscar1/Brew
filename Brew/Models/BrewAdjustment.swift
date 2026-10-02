@@ -13,6 +13,10 @@ struct BrewAdjustment {
     let previousDisplayValue: String
     let suggestedGrams: Double?
 
+    var title: String {
+        recommendationHeadline(variable: variable, direction: direction)
+    }
+
     init?(decision: RecommendationDecision, brew: Brew) {
         switch decision.direction {
         case .maintain, .unclear:

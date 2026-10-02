@@ -122,7 +122,7 @@ struct BrewSetupView: View {
 
     private func adjustmentFooter(_ adjustment: BrewAdjustment) -> some View {
         Label(
-            "Previously \(adjustment.previousDisplayValue) · \(adjustment.direction.title)",
+            "Previously \(adjustment.previousDisplayValue) · \(adjustment.title)",
             systemImage: "arrow.triangle.2.circlepath")
             .font(.footnote)
             .foregroundStyle(Color("CoffeeTint"))
