@@ -150,12 +150,12 @@ struct BrewDetailView: View {
     private var timing: [BrewSetting] {
         var items: [BrewSetting] = []
 
-        if let target = brew.targetDurationSeconds {
+        if let target = brew.targetDurationSeconds, target > 0 {
             items.append(BrewSetting(title: String(localized: "Target time"),
                                      value: BrewSetting.duration(target), icon: "target"))
         }
 
-        if let actual = brew.actualDurationSeconds {
+        if let actual = brew.actualDurationSeconds, actual > 0 {
             items.append(BrewSetting(title: String(localized: "Actual time"),
                                      value: BrewSetting.duration(actual), icon: "stopwatch"))
         }
