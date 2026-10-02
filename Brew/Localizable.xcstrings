@@ -25,6 +25,9 @@
     "Acidity" : {
 
     },
+    "Actual time" : {
+
+    },
     "Add a coffee in your library first." : {
 
     },
@@ -218,10 +221,10 @@
         }
       }
     },
-    "Edit Evaluation" : {
+    "Edit evaluation" : {
 
     },
-    "Edits this rating" : {
+    "Edit Evaluation" : {
 
     },
     "Espresso" : {
@@ -446,6 +449,9 @@
     "Okay" : {
 
     },
+    "Opens brew details" : {
+
+    },
     "Opens coffee details" : {
       "localizations" : {
         "en" : {
@@ -497,9 +503,6 @@
           }
         }
       }
-    },
-    "Rates this brew" : {
-
     },
     "Rating" : {
 
@@ -596,9 +599,6 @@
     "Sharp" : {
 
     },
-    "Shows its recommendation" : {
-
-    },
     "Start" : {
 
     },
@@ -614,6 +614,9 @@
     "Target time" : {
 
     },
+    "Taste" : {
+
+    },
     "Temperature" : {
 
     },
@@ -621,6 +624,9 @@
 
     },
     "This brew already tasted strong, so change the grind only slightly and see how the next cup lands. Keep everything else the same." : {
+
+    },
+    "This brew hasn't been evaluated yet." : {
 
     },
     "This brew leaned acidic. A slightly finer grind may increase extraction. Keep the coffee amount, water and temperature unchanged." : {
@@ -647,6 +653,9 @@
     "Time" : {
 
     },
+    "Timing" : {
+
+    },
     "Unknown method" : {
 
     },
@@ -661,6 +670,9 @@
       }
     },
     "V60" : {
+
+    },
+    "Wanted to improve" : {
 
     },
     "Water" : {

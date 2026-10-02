@@ -27,9 +27,7 @@ struct BrewDetailView: View {
                     }
                 }
 
-                section(title: "Taste") {
-                    taste
-                }
+                tasteSection
 
                 if let recommendation = brew.recommendation {
                     section(title: "Next time") {
@@ -53,17 +51,36 @@ struct BrewDetailView: View {
         .background(Color("CoffeeCanvas"))
         .navigationTitle("Brew")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            if brew.tasteEvaluation != nil {
-                ToolbarItem(placement: .primaryAction) {
-                    Button("Edit evaluation", systemImage: "pencil") {
-                        showsEvaluation = true
+        .sheet(isPresented: $showsEvaluation) {
+            NavigationStack {
+                TasteEvaluationView(brew: brew) { _ in showsEvaluation = false }
+                    .toolbar {
+                        ToolbarItem(placement: .cancellationAction) {
+                            Button("Cancel") { showsEvaluation = false }
+                        }
                     }
+            }
+            .tint(Color("CoffeeTint"))
+        }
+    }
+
+    private var tasteSection: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack {
+                Text("Taste")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+
+                Spacer()
+
+                if brew.tasteEvaluation != nil {
+                    Button("Edit") { showsEvaluation = true }
+                        .font(.subheadline.weight(.semibold))
                 }
             }
-        }
-        .sheet(isPresented: $showsEvaluation) {
-            EvaluationFlow(brew: brew) { showsEvaluation = false }
+            .padding(.horizontal, 4)
+
+            taste
         }
     }
 
