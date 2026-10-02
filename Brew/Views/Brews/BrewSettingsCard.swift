@@ -16,22 +16,28 @@ struct BrewSetting {
         "\(value.formatted(.number.precision(.fractionLength(0...1)))) g"
     }
 
-    static func all(for brew: Brew, recommendation: BrewRecommendation) -> [BrewSetting] {
-        let showAll = recommendation.variable == RecommendationVariable.none
+    static func duration(_ seconds: Double) -> String {
+        let total = Int(seconds)
+        return String(format: "%d:%02d", total / 60, total % 60)
+    }
+
+    static func all(for brew: Brew, recommendation: BrewRecommendation? = nil) -> [BrewSetting] {
+        let changed = recommendation?.variable
+        let showAll = changed == nil || changed == RecommendationVariable.none
         var items = [BrewSetting(title: String(localized: "Coffee"),
                                  value: grams(brew.coffeeGrams), icon: "scalemass")]
 
-        if showAll || recommendation.variable != .water, let water = brew.waterGrams {
+        if showAll || changed != .water, let water = brew.waterGrams {
             items.append(BrewSetting(title: String(localized: "Water"),
                                      value: grams(water), icon: "drop"))
         }
 
-        if showAll || recommendation.variable != .beverageYield, let beverage = brew.beverageGrams {
+        if showAll || changed != .beverageYield, let beverage = brew.beverageGrams {
             items.append(BrewSetting(title: String(localized: "Beverage"),
                                      value: grams(beverage), icon: "cup.and.saucer"))
         }
 
-        if showAll || recommendation.variable != .grind {
+        if showAll || changed != .grind {
             items.append(BrewSetting(title: String(localized: "Grind"),
                                      value: brew.grindDisplayValue, icon: "dial.medium"))
         }

@@ -8,20 +8,43 @@
 import SwiftUI
 
 struct TasteScale: View {
-    enum Style {
-        case position
-        case rating
+    private enum Source {
+        case editable(Binding<Int>)
+        case fixed(Int)
     }
 
-    let title: LocalizedStringKey
-    let labels: [LocalizedStringKey]
-    let style: Style
-    @Binding var value: Int
+    let dimension: TasteDimension
+    private let source: Source
 
+    init(dimension: TasteDimension, selection: Binding<Int>) {
+        self.dimension = dimension
+        source = .editable(selection)
+    }
+
+    init(dimension: TasteDimension, value: Int) {
+        self.dimension = dimension
+        source = .fixed(value)
+    }
+
+    @ViewBuilder
     var body: some View {
+        if let selection {
+            scale.accessibilityAdjustableAction { direction in
+                switch direction {
+                case .increment: selection.wrappedValue = min(value + 1, labels.count)
+                case .decrement: selection.wrappedValue = max(value - 1, 1)
+                @unknown default: break
+                }
+            }
+        } else {
+            scale
+        }
+    }
+
+    private var scale: some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack {
-                Text(title)
+                Text(dimension.title)
                     .font(.subheadline.weight(.medium))
 
                 Spacer()
@@ -33,16 +56,16 @@ struct TasteScale: View {
 
             HStack(spacing: 6) {
                 ForEach(1...labels.count, id: \.self) { step in
-                    Button {
-                        withAnimation(.snappy(duration: 0.18)) { value = step }
-                    } label: {
-                        Capsule()
-                            .fill(Color("CoffeeTint").opacity(fill(for: step)))
-                            .frame(height: step == value ? 14 : 8)
-                            .frame(maxWidth: .infinity)
-                            .contentShape(Rectangle())
+                    if let selection {
+                        Button {
+                            withAnimation(.snappy(duration: 0.18)) { selection.wrappedValue = step }
+                        } label: {
+                            capsule(for: step)
+                        }
+                        .buttonStyle(.plain)
+                    } else {
+                        capsule(for: step)
                     }
-                    .buttonStyle(.plain)
                 }
             }
             .frame(height: 14)
@@ -57,21 +80,43 @@ struct TasteScale: View {
         }
         .padding(.vertical, 6)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(Text(title))
+        .accessibilityLabel(Text(dimension.title))
         .accessibilityValue(Text(labels[value - 1]))
-        .accessibilityAdjustableAction { direction in
-            switch direction {
-            case .increment: value = min(value + 1, labels.count)
-            case .decrement: value = max(value - 1, 1)
-            @unknown default: break
-            }
+    }
+
+    private func capsule(for step: Int) -> some View {
+        Capsule()
+            .fill(Color("CoffeeTint").opacity(fill(for: step)))
+            .frame(height: step == value ? 14 : 8)
+            .frame(maxWidth: .infinity)
+            .contentShape(Rectangle())
+    }
+
+    private var labels: [LocalizedStringKey] {
+        dimension.labels
+    }
+
+    private var selection: Binding<Int>? {
+        switch source {
+        case let .editable(selection): selection
+        case .fixed: nil
         }
     }
 
+    private var value: Int {
+        let stored = switch source {
+        case let .editable(selection): selection.wrappedValue
+        case let .fixed(value): value
+        }
+
+        return min(max(stored, 1), labels.count)
+    }
+
     private func fill(for step: Int) -> Double {
-        switch style {
-        case .position: step == value ? 1 : 0.15
-        case .rating: step <= value ? 1 : 0.15
+        if dimension.isCumulative {
+            step <= value ? 1 : 0.15
+        } else {
+            step == value ? 1 : 0.15
         }
     }
 }

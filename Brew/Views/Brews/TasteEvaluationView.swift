@@ -25,29 +25,17 @@ struct TasteEvaluationView: View {
     var body: some View {
         Form {
             Section {
-                TasteScale(title: "Acidity",
-                           labels: ["Flat", "Low", "Balanced", "Bright", "Sharp"],
-                           style: .position,
-                           value: $evaluation.acidityValue)
+                TasteScale(dimension: .acidity, selection: $evaluation.acidityValue)
 
-                TasteScale(title: "Bitterness",
-                           labels: ["None", "Low", "Balanced", "Bitter", "Harsh"],
-                           style: .position,
-                           value: $evaluation.bitternessValue)
+                TasteScale(dimension: .bitterness, selection: $evaluation.bitternessValue)
 
-                TasteScale(title: "Strength",
-                           labels: ["Watery", "Weak", "Balanced", "Strong", "Intense"],
-                           style: .position,
-                           value: $evaluation.strengthValue)
+                TasteScale(dimension: .strength, selection: $evaluation.strengthValue)
             } header: {
                 Text("How did it taste?")
             }
 
             Section("Overall") {
-                TasteScale(title: "How much you liked it",
-                           labels: ["Disliked", "Poor", "Okay", "Good", "Loved"],
-                           style: .rating,
-                           value: $evaluation.overallValue)
+                TasteScale(dimension: .overall, selection: $evaluation.overallValue)
             }
 
             Section {
