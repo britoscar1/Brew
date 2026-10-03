@@ -23,7 +23,7 @@ struct BrewSetupView: View {
 
     var body: some View {
         Form {
-            if let suggestion = setup.suggestion, setup.adjustment == nil {
+            if let suggestion = setup.suggestion, !setup.hasAppliedSuggestion {
                 Section {
                     suggestionRow(suggestion)
                 }
@@ -146,7 +146,7 @@ struct BrewSetupView: View {
         } label: {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(suggestion.adjustment.title) than \(suggestion.adjustment.previousDisplayValue)")
+                    Text(suggestion.title)
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.primary)
 

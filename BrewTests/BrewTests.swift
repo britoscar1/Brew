@@ -451,9 +451,10 @@ private func repeatContext() throws -> (ModelContainer, ModelContext, Coffee) {
 private func source(in context: ModelContext, coffee: Coffee, method: BrewMethod = .v60,
                     water: Double? = 250, beverage: Double? = nil,
                     acidity: Int = 3, bitterness: Int = 3, strength: Int = 3,
-                    overall: Int = 3, goal: ImprovementGoal? = nil) -> Brew {
+                    overall: Int = 3, goal: ImprovementGoal? = nil,
+                    completedAt: Date = t0) -> Brew {
     let brew = Brew(coffee: coffee, method: method, coffeeGrams: 15,
-                    grindDisplayValue: "22", status: .completed, completedAt: t0,
+                    grindDisplayValue: "22", status: .completed, completedAt: completedAt,
                     waterGrams: water, beverageGrams: beverage, temperatureCelsius: 94,
                     targetDurationSeconds: 195, actualDurationSeconds: 168)
     context.insert(brew)
@@ -625,7 +626,7 @@ private struct BrewFields: Equatable {
     let suggestion = try #require(setup.suggestion)
 
     #expect(suggestion.source === last)
-    #expect(suggestion.adjustment.variable == .grind)
+    #expect(suggestion.adjustment?.variable == .grind)
 
     // Entering Brew Setup leaves the method defaults alone.
     #expect(setup.adjustment == nil)
@@ -641,18 +642,56 @@ private struct BrewFields: Equatable {
     _ = container
 }
 
-@Test @MainActor func theSuggestionIsPerMethodAndSkipsBrewsWithNothingToChange() throws {
+@Test @MainActor func theSuggestionIsPerMethod() throws {
     let (container, context, coffee) = try repeatContext()
     _ = source(in: context, coffee: coffee, method: .frenchPress, water: 500,
                acidity: 5, strength: 2, overall: 2)
 
     #expect(BrewSetupViewModel(coffee: coffee, method: .v60).suggestion == nil)
     #expect(BrewSetupViewModel(coffee: coffee, method: .frenchPress).suggestion != nil)
+    _ = container
+}
 
-    // A later brew the engine cannot act on does not hide the one that still counts.
-    let kept = source(in: context, coffee: coffee, method: .frenchPress,
-                      water: 500, goal: .keepAsIs)
-    #expect(BrewAdjustment(brew: kept) == nil)
-    #expect(BrewSetupViewModel(coffee: coffee, method: .frenchPress).suggestion != nil)
+/// A brew the person enjoyed must not be overruled by an older adjustment: the
+/// engine just told them to keep these settings.
+@Test @MainActor func aBrewYouLikedOffersToReproduceItself() throws {
+    let (container, context, coffee) = try repeatContext()
+    _ = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)
+    let liked = source(in: context, coffee: coffee, goal: .keepAsIs,
+                       completedAt: t0.addingTimeInterval(3600))
+
+    #expect(liked.recommendation?.direction == .maintain)
+
+    let setup = BrewSetupViewModel(coffee: coffee, method: .v60)
+    let suggestion = try #require(setup.suggestion)
+
+    #expect(suggestion.source === liked)
+    #expect(suggestion.adjustment == nil)
+    if case .keep = suggestion.kind {} else {
+        Issue.record("Expected a keep suggestion, got \(suggestion.kind)")
+    }
+
+    setup.applySuggestion()
+
+    #expect(setup.grindDisplayValue == liked.grindDisplayValue)
+    #expect(setup.waterGrams == liked.waterGrams)
+    #expect(setup.canSave)
+    _ = container
+}
+
+/// Feedback the engine cannot read is still advice: repeat it once more unchanged.
+@Test @MainActor func anUnclearEvaluationOffersTheSameBrewAgain() throws {
+    let (container, context, coffee) = try repeatContext()
+    let unclear = source(in: context, coffee: coffee, acidity: 5, bitterness: 5)
+
+    #expect(unclear.recommendation?.direction == .unclear)
+
+    let suggestion = try #require(BrewSetupViewModel(coffee: coffee, method: .v60).suggestion)
+
+    #expect(suggestion.source === unclear)
+    #expect(suggestion.adjustment == nil)
+    if case .tryAgain = suggestion.kind {} else {
+        Issue.record("Expected a tryAgain suggestion, got \(suggestion.kind)")
+    }
     _ = container
 }

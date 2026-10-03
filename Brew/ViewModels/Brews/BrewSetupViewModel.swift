@@ -22,6 +22,10 @@ final class BrewSetupViewModel {
     /// still be acted on. Offered at the top of Brew Setup, never applied on its own.
     let suggestion: BrewSuggestion?
 
+    /// True once the person took the suggestion. Not the same as having an
+    /// adjustment: keeping the settings you liked changes nothing to flag.
+    private(set) var hasAppliedSuggestion = false
+
     var coffeeGrams: Double?
     var waterGrams: Double?
     var beverageGrams: Double?
@@ -49,6 +53,7 @@ final class BrewSetupViewModel {
         guard let suggestion else { return }
 
         adjustment = suggestion.adjustment
+        hasAppliedSuggestion = true
         seed(from: suggestion.source, adjustment: suggestion.adjustment)
     }
 
