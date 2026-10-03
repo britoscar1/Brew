@@ -132,11 +132,11 @@ struct BrewSetupView: View {
         } label: {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
-                    Text("\(suggestion.adjustment.title), from \(suggestion.adjustment.previousDisplayValue)")
+                    Text("\(suggestion.adjustment.title) than \(suggestion.adjustment.previousDisplayValue)")
                         .font(.subheadline.weight(.medium))
                         .foregroundStyle(.primary)
 
-                    Text("Suggested after \(suggestion.source.sortDate.formatted(.dateTime.month(.abbreviated).day()))")
+                    Text("After your brew on \(suggestion.source.sortDate.formatted(.dateTime.month(.abbreviated).day()))")
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
