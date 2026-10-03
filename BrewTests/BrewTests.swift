@@ -592,6 +592,21 @@ private struct BrewFields: Equatable {
     #expect(BrewAdjustment(brew: unevaluated) == nil)
 }
 
+@Test @MainActor func anArchivedCoffeeCannotStartANewBrewFromItsHistory() throws {
+    let (container, context, coffee) = try repeatContext()
+    let original = source(in: context, coffee: coffee, strength: 1, goal: .stronger)
+
+    #expect(BrewSetupViewModel(repeating: original) != nil)
+
+    coffee.archive()
+
+    #expect(BrewSetupViewModel(repeating: original) == nil)
+    #expect(BrewSetupViewModel(repeating: original,
+                               adjustment: BrewAdjustment(brew: original)) == nil)
+    #expect(coffee.completedBrews.count == 1)
+    _ = container
+}
+
 @Test @MainActor func sharedInputRebuildsThePersistedRecommendation() throws {
     let (container, context, coffee) = try repeatContext()
     let brew = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)

@@ -47,7 +47,7 @@ struct BrewDetailView: View {
                                 .background(Color("CoffeeCrema").opacity(0.2),
                                             in: RoundedRectangle(cornerRadius: 20))
 
-                            if adjustment != nil {
+                            if canRepeat, adjustment != nil {
                                 Button {
                                     repeatRequest = RepeatRequest(brew: brew, appliesAdjustment: true)
                                 } label: {
@@ -108,8 +108,11 @@ struct BrewDetailView: View {
         BrewAdjustment(brew: brew)
     }
 
+    /// An archived coffee is out of the active library, so it cannot start a new
+    /// brew from its history either — COF-04 keeps its records, not its use.
     private var canRepeat: Bool {
-        brew.coffee != nil && brew.method != nil
+        guard let coffee = brew.coffee else { return false }
+        return coffee.archivedAt == nil && brew.method != nil
     }
 
     private var tasteSection: some View {

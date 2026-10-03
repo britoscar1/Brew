@@ -11,6 +11,7 @@ import SwiftData
 enum BrewStep: Hashable {
     case chooseCoffee(BrewMethod)
     case setup(Coffee, BrewMethod)
+    case repeatSetup(Brew, applyingAdjustment: Bool)
     case brewMode(Brew)
     case evaluate(Brew)
     case recommendation(Brew)
@@ -61,8 +62,19 @@ struct BrewView: View {
                     BrewModeView(brew: brew) { path = [.evaluate($0)] }
                 case let .evaluate(brew):
                     TasteEvaluationView(brew: brew) { path.append(.recommendation($0)) }
+                case let .repeatSetup(source, applyingAdjustment):
+                    if let setup = BrewSetupViewModel(
+                        repeating: source,
+                        adjustment: applyingAdjustment ? BrewAdjustment(brew: source) : nil) {
+                        BrewSetupView(setup: setup) { path.append(.brewMode($0)) }
+                    }
                 case let .recommendation(brew):
-                    RecommendationView(brew: brew) { path.removeAll() }
+                    RecommendationView(
+                        brew: brew,
+                        onFinish: { path.removeAll() },
+                        onBrewAgain: { applying in
+                            path = [.repeatSetup(brew, applyingAdjustment: applying)]
+                        })
                 }
             }
             .navigationTitle("How are you brewing?")

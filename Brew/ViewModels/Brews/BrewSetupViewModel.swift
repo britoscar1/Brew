@@ -36,8 +36,11 @@ final class BrewSetupViewModel {
         temperatureCelsius = defaults.temperatureCelsius
     }
 
+    /// Fails for an archived coffee: it is out of the active library, so it cannot
+    /// start a new brew from its history either (COF-04).
     init?(repeating source: Brew, adjustment: BrewAdjustment? = nil) {
-        guard let coffee = source.coffee, let method = source.method else { return nil }
+        guard let coffee = source.coffee, coffee.archivedAt == nil,
+              let method = source.method else { return nil }
 
         self.coffee = coffee
         self.method = method
