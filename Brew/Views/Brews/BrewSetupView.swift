@@ -12,6 +12,7 @@ struct BrewSetupView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var setup: BrewSetupViewModel
     @State private var showsSaveError = false
+    @FocusState private var grindIsFocused: Bool
 
     private let onSaved: (Brew) -> Void
 
@@ -68,7 +69,7 @@ struct BrewSetupView: View {
                 Text("Dose")
             } footer: {
                 if let adjustment = setup.adjustment, adjustment.variable != .grind {
-                    adjustmentFooter(adjustment)
+                    adjustmentHint(adjustment)
                 }
             }
 
@@ -76,11 +77,18 @@ struct BrewSetupView: View {
                 TextField("22 clicks, 4.2, or medium-fine", text: $setup.grindDisplayValue)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                    .focused($grindIsFocused)
             } header: {
-                Text("Grind setting")
-            } footer: {
-                if let adjustment = setup.adjustment, adjustment.variable == .grind {
-                    adjustmentFooter(adjustment)
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Grind setting")
+
+                    Spacer(minLength: 8)
+
+                    // Above the field, not below: the keyboard covers a footer, and
+                    // this is the one thing worth reading while typing.
+                    if let adjustment = setup.adjustment, adjustment.variable == .grind {
+                        adjustmentHint(adjustment)
+                    }
                 }
             }
 
@@ -129,6 +137,12 @@ struct BrewSetupView: View {
     private func suggestionRow(_ suggestion: BrewSuggestion) -> some View {
         Button {
             setup.applySuggestion()
+
+            // A grind suggestion leaves the field empty on purpose, so point at it:
+            // otherwise applying one looks like nothing happened.
+            if setup.adjustment?.variable == .grind {
+                grindIsFocused = true
+            }
         } label: {
             HStack(spacing: 12) {
                 VStack(alignment: .leading, spacing: 2) {
@@ -143,21 +157,20 @@ struct BrewSetupView: View {
 
                 Spacer(minLength: 0)
 
-                Text("Apply")
+                Text("Use")
                     .font(.subheadline.weight(.semibold))
                     .foregroundStyle(Color("CoffeeTint"))
             }
         }
         .buttonStyle(.plain)
-        .accessibilityHint("Fills this setup with the suggested change")
+        .accessibilityHint("Sets up this brew from the last one, with the suggested change")
     }
 
-    private func adjustmentFooter(_ adjustment: BrewAdjustment) -> some View {
-        Label(
-            "Previously \(adjustment.previousDisplayValue) · \(adjustment.title)",
-            systemImage: "arrow.triangle.2.circlepath")
+    private func adjustmentHint(_ adjustment: BrewAdjustment) -> some View {
+        Text("Previously \(adjustment.previousDisplayValue) · \(adjustment.title)")
             .font(.footnote)
             .foregroundStyle(Color("CoffeeTint"))
+            .textCase(nil)
     }
 
     private func amountField(_ placeholder: String, value: Binding<Double?>, unit: LocalizedStringKey) -> some View {
