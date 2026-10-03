@@ -616,3 +616,43 @@ private struct BrewFields: Equatable {
 
     #expect(decision?.ruleID.rawValue == brew.recommendation?.ruleID)
 }
+
+@Test @MainActor func setupOffersTheLastSuggestionButNeverAppliesItOnItsOwn() throws {
+    let (container, context, coffee) = try repeatContext()
+    let last = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)
+
+    let setup = BrewSetupViewModel(coffee: coffee, method: .v60)
+    let suggestion = try #require(setup.suggestion)
+
+    #expect(suggestion.source === last)
+    #expect(suggestion.adjustment.variable == .grind)
+
+    // Entering Brew Setup leaves the method defaults alone.
+    #expect(setup.adjustment == nil)
+    #expect(setup.coffeeGrams == BrewMethod.v60.defaults.coffeeGrams)
+    #expect(setup.grindDisplayValue.isEmpty)
+
+    setup.applySuggestion()
+
+    #expect(setup.adjustment?.variable == .grind)
+    #expect(setup.coffeeGrams == last.coffeeGrams)
+    #expect(setup.waterGrams == last.waterGrams)
+    #expect(setup.grindDisplayValue.isEmpty)
+    _ = container
+}
+
+@Test @MainActor func theSuggestionIsPerMethodAndSkipsBrewsWithNothingToChange() throws {
+    let (container, context, coffee) = try repeatContext()
+    _ = source(in: context, coffee: coffee, method: .frenchPress, water: 500,
+               acidity: 5, strength: 2, overall: 2)
+
+    #expect(BrewSetupViewModel(coffee: coffee, method: .v60).suggestion == nil)
+    #expect(BrewSetupViewModel(coffee: coffee, method: .frenchPress).suggestion != nil)
+
+    // A later brew the engine cannot act on does not hide the one that still counts.
+    let kept = source(in: context, coffee: coffee, method: .frenchPress,
+                      water: 500, goal: .keepAsIs)
+    #expect(BrewAdjustment(brew: kept) == nil)
+    #expect(BrewSetupViewModel(coffee: coffee, method: .frenchPress).suggestion != nil)
+    _ = container
+}

@@ -14,7 +14,13 @@ import SwiftData
 final class BrewSetupViewModel {
     let coffee: Coffee
     let method: BrewMethod
-    let adjustment: BrewAdjustment?
+
+    /// The adjustment currently seeded into these values, if any.
+    private(set) var adjustment: BrewAdjustment?
+
+    /// The most recent brew of this coffee and method whose recommendation can
+    /// still be acted on. Offered at the top of Brew Setup, never applied on its own.
+    let suggestion: BrewSuggestion?
 
     var coffeeGrams: Double?
     var waterGrams: Double?
@@ -28,12 +34,22 @@ final class BrewSetupViewModel {
         self.coffee = coffee
         self.method = method
         adjustment = nil
+        suggestion = BrewSuggestion(lastOf: coffee, method: method)
 
         let defaults = method.defaults
         coffeeGrams = defaults.coffeeGrams
         waterGrams = defaults.waterGrams
         beverageGrams = defaults.beverageGrams
         temperatureCelsius = defaults.temperatureCelsius
+    }
+
+    /// Replaces the method defaults with the suggested brew's values. Only the
+    /// person tapping Apply calls this; entering Brew Setup never does.
+    func applySuggestion() {
+        guard let suggestion else { return }
+
+        adjustment = suggestion.adjustment
+        seed(from: suggestion.source, adjustment: suggestion.adjustment)
     }
 
     /// Fails for an archived coffee: it is out of the active library, so it cannot
@@ -45,12 +61,19 @@ final class BrewSetupViewModel {
         self.coffee = coffee
         self.method = method
         self.adjustment = adjustment
+        suggestion = nil
 
+        seed(from: source, adjustment: adjustment)
+    }
+
+    private func seed(from source: Brew, adjustment: BrewAdjustment?) {
         coffeeGrams = source.coffeeGrams
         waterGrams = source.waterGrams
         beverageGrams = source.beverageGrams
         temperatureCelsius = source.temperatureCelsius
         grindDisplayValue = source.grindDisplayValue
+        durationMinutes = nil
+        durationSeconds = nil
 
         if let target = source.targetDurationSeconds, target > 0 {
             let total = Int(target)

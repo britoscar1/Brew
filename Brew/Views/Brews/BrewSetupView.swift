@@ -22,6 +22,14 @@ struct BrewSetupView: View {
 
     var body: some View {
         Form {
+            if let suggestion = setup.suggestion, setup.adjustment == nil {
+                Section {
+                    suggestionCard(suggestion)
+                }
+                .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
+                .listRowBackground(Color.clear)
+            }
+
             Section {
                 HStack(spacing: 12) {
                     Image(setup.method.iconName)
@@ -117,6 +125,38 @@ struct BrewSetupView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Your brew couldn't be saved. Please try again.")
+        }
+    }
+
+    private func suggestionCard(_ suggestion: BrewSuggestion) -> some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "arrow.triangle.2.circlepath")
+                    .foregroundStyle(Color("CoffeeTint"))
+
+                Text("Last time · \(suggestion.source.sortDate.formatted(.dateTime.month(.abbreviated).day()))")
+                    .font(.subheadline.weight(.medium))
+
+                Spacer(minLength: 0)
+            }
+
+            Text("\(suggestion.adjustment.title), from \(suggestion.adjustment.previousDisplayValue)")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+                .frame(maxWidth: .infinity, alignment: .leading)
+
+            Button("Apply") {
+                setup.applySuggestion()
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.regular)
+            .frame(maxWidth: .infinity, alignment: .trailing)
+        }
+        .padding(18)
+        .background(Color("CoffeeCrema").opacity(0.2), in: RoundedRectangle(cornerRadius: 20))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color("CoffeeTint").opacity(0.12))
         }
     }
 
