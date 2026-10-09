@@ -7,10 +7,17 @@
 
 import SwiftUI
 
+private struct RepeatRequest: Hashable {
+    let brew: Brew
+    let appliesAdjustment: Bool
+}
+
 struct BrewDetailView: View {
     let brew: Brew
 
-    @State private var showsEvaluation = false
+    @State private var brewToEvaluate: Brew?
+    @State private var repeatRequest: RepeatRequest?
+    @State private var brewToStart: Brew?
 
     var body: some View {
         ScrollView {
@@ -39,8 +46,28 @@ struct BrewDetailView: View {
                                 .padding(18)
                                 .background(Color("CoffeeCrema").opacity(0.2),
                                             in: RoundedRectangle(cornerRadius: 20))
+
+                            if canRepeat, adjustment != nil {
+                                Button {
+                                    repeatRequest = RepeatRequest(brew: brew, appliesAdjustment: true)
+                                } label: {
+                                    Text("Brew with this adjustment").frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.large)
+                            }
                         }
                     }
+                }
+
+                if canRepeat {
+                    Button {
+                        repeatRequest = RepeatRequest(brew: brew, appliesAdjustment: false)
+                    } label: {
+                        Text("Repeat brew").frame(maxWidth: .infinity)
+                    }
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
                 }
             }
             .padding(.horizontal, 16)
@@ -51,17 +78,41 @@ struct BrewDetailView: View {
         .background(Color("CoffeeCanvas"))
         .navigationTitle("Brew")
         .navigationBarTitleDisplayMode(.inline)
-        .sheet(isPresented: $showsEvaluation) {
+        .sheet(item: $brewToEvaluate) { target in
             NavigationStack {
-                TasteEvaluationView(brew: brew) { _ in showsEvaluation = false }
+                TasteEvaluationView(brew: target) { _ in brewToEvaluate = nil }
                     .toolbar {
                         ToolbarItem(placement: .cancellationAction) {
-                            Button("Cancel") { showsEvaluation = false }
+                            Button("Cancel") { brewToEvaluate = nil }
                         }
                     }
             }
             .tint(Color("CoffeeTint"))
         }
+        .navigationDestination(item: $repeatRequest) { request in
+            if let setup = BrewSetupViewModel(repeating: request.brew,
+                                              adjustment: request.appliesAdjustment ? adjustment : nil) {
+                BrewSetupView(setup: setup) { brewToStart = $0 }
+            }
+        }
+        .navigationDestination(item: $brewToStart) { newBrew in
+            BrewModeView(brew: newBrew) { finished in
+                brewToStart = nil
+                repeatRequest = nil
+                brewToEvaluate = finished
+            }
+        }
+    }
+
+    private var adjustment: BrewAdjustment? {
+        BrewAdjustment(brew: brew)
+    }
+
+    /// An archived coffee is out of the active library, so it cannot start a new
+    /// brew from its history either — COF-04 keeps its records, not its use.
+    private var canRepeat: Bool {
+        guard let coffee = brew.coffee else { return false }
+        return coffee.archivedAt == nil && brew.method != nil
     }
 
     private var tasteSection: some View {
@@ -74,7 +125,7 @@ struct BrewDetailView: View {
                 Spacer()
 
                 if brew.tasteEvaluation != nil {
-                    Button("Edit") { showsEvaluation = true }
+                    Button("Edit") { brewToEvaluate = brew }
                         .font(.subheadline.weight(.semibold))
                 }
             }
@@ -139,7 +190,7 @@ struct BrewDetailView: View {
                     .multilineTextAlignment(.center)
 
                 Button {
-                    showsEvaluation = true
+                    brewToEvaluate = brew
                 } label: {
                     Text("Evaluate").frame(maxWidth: .infinity)
                 }

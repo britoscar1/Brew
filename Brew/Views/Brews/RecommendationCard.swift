@@ -84,17 +84,8 @@ struct RecommendationCard: View {
     }
 
     private var headline: String {
-        guard let direction = recommendation.direction else { return "" }
-
-        switch direction {
-        case .finer, .coarser, .maintain, .unclear:
-            return direction.title
-        case .increase, .decrease:
-            let variable = recommendation.variable?.title ?? ""
-            return direction == .increase
-                ? String(localized: "More \(variable.lowercased())")
-                : String(localized: "Less \(variable.lowercased())")
-        }
+        recommendationHeadline(variable: recommendation.variable,
+                               direction: recommendation.direction)
     }
 
     private var currentValue: String {

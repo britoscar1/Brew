@@ -75,6 +75,23 @@ enum RecommendationRuleID: String {
     case automaticUnclear = "AUTO_UNCLEAR"
 }
 
+/// How an adjustment reads as a headline, shared by the recommendation card and
+/// the hint in Brew Setup so both name the same change the same way.
+func recommendationHeadline(variable: RecommendationVariable?,
+                            direction: RecommendationDirection?) -> String {
+    guard let direction else { return "" }
+
+    switch direction {
+    case .finer, .coarser, .maintain, .unclear:
+        return direction.title
+    case .increase, .decrease:
+        let variable = variable?.title ?? ""
+        return direction == .increase
+            ? String(localized: "More \(variable.lowercased())")
+            : String(localized: "Less \(variable.lowercased())")
+    }
+}
+
 enum RecommendationValue {
     case text(String)
     case grams(Double)

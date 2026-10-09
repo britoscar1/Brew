@@ -1,6 +1,16 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "%@ than %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ than %2$@"
+          }
+        }
+      }
+    },
     "%lld" : {
 
     },
@@ -64,6 +74,9 @@
     "AeroPress" : {
 
     },
+    "After your brew on %@" : {
+
+    },
     "Archive" : {
       "localizations" : {
         "en" : {
@@ -115,6 +128,9 @@
 
     },
     "Brew settings" : {
+
+    },
+    "Brew with this adjustment" : {
 
     },
     "Bright" : {
@@ -301,6 +317,9 @@
     "Keep the rest the same" : {
 
     },
+    "Keep the settings you liked" : {
+
+    },
     "Less %@" : {
 
     },
@@ -481,6 +500,16 @@
     "Poor" : {
 
     },
+    "Previously %@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Previously %1$@ · %2$@"
+          }
+        }
+      }
+    },
     "Process" : {
       "localizations" : {
         "en" : {
@@ -508,6 +537,9 @@
 
     },
     "Recipe" : {
+
+    },
+    "Repeat brew" : {
 
     },
     "Restore" : {
@@ -593,6 +625,9 @@
         }
       }
     },
+    "Sets up this brew from the last one, with the suggested change" : {
+
+    },
     "Sharp" : {
 
     },
@@ -653,6 +688,9 @@
     "Timing" : {
 
     },
+    "Try the same brew again" : {
+
+    },
     "Unknown method" : {
 
     },
@@ -665,6 +703,9 @@
           }
         }
       }
+    },
+    "Use" : {
+
     },
     "V60" : {
 

@@ -11,6 +11,7 @@ struct RecommendationView: View {
     let brew: Brew
     let onFinish: () -> Void
     var onEdit: (() -> Void)?
+    var onBrewAgain: ((Bool) -> Void)?
 
     var body: some View {
         ScrollView {
@@ -29,6 +30,28 @@ struct RecommendationView: View {
                     if !settings.isEmpty {
                         section(title: settingsTitle(for: recommendation)) {
                             BrewSettingsCard(settings: settings)
+                        }
+                    }
+
+                    if let onBrewAgain, canBrewAgain {
+                        VStack(spacing: 12) {
+                            if adjustment != nil {
+                                Button {
+                                    onBrewAgain(true)
+                                } label: {
+                                    Text("Brew with this adjustment").frame(maxWidth: .infinity)
+                                }
+                                .buttonStyle(.borderedProminent)
+                                .controlSize(.large)
+                            }
+
+                            Button {
+                                onBrewAgain(false)
+                            } label: {
+                                Text("Repeat brew").frame(maxWidth: .infinity)
+                            }
+                            .buttonStyle(.bordered)
+                            .controlSize(.large)
                         }
                     }
                 }
@@ -53,6 +76,15 @@ struct RecommendationView: View {
                 Button("Done", action: onFinish)
             }
         }
+    }
+
+    private var adjustment: BrewAdjustment? {
+        BrewAdjustment(brew: brew)
+    }
+
+    private var canBrewAgain: Bool {
+        guard let coffee = brew.coffee else { return false }
+        return coffee.archivedAt == nil && brew.method != nil
     }
 
     private var settings: [BrewSetting] {

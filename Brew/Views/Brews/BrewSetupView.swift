@@ -12,35 +12,38 @@ struct BrewSetupView: View {
     @Environment(\.modelContext) private var modelContext
     @State private var setup: BrewSetupViewModel
     @State private var showsSaveError = false
+    @FocusState private var grindIsFocused: Bool
 
-    private let coffee: Coffee
-    private let method: BrewMethod
     private let onSaved: (Brew) -> Void
 
-    init(coffee: Coffee, method: BrewMethod, onSaved: @escaping (Brew) -> Void) {
-        self.coffee = coffee
-        self.method = method
+    init(setup: BrewSetupViewModel, onSaved: @escaping (Brew) -> Void) {
         self.onSaved = onSaved
-        _setup = State(initialValue: BrewSetupViewModel(coffee: coffee, method: method))
+        _setup = State(initialValue: setup)
     }
 
     var body: some View {
         Form {
+            if let suggestion = setup.suggestion, !setup.hasAppliedSuggestion {
+                Section {
+                    suggestionRow(suggestion)
+                }
+            }
+
             Section {
                 HStack(spacing: 12) {
-                    Image(method.iconName)
+                    Image(setup.method.iconName)
                         .resizable()
                         .scaledToFit()
                         .frame(width: 40, height: 40)
                         .accessibilityHidden(true)
 
-                    Text(method.title)
+                    Text(setup.method.title)
                         .font(.headline)
                 }
                 .padding(.vertical, 4)
             }
 
-            Section("Dose") {
+            Section {
                 LabeledContent("Coffee") {
                     amountField("18", value: $setup.coffeeGrams, unit: "g")
                 }
@@ -62,12 +65,31 @@ struct BrewSetupView: View {
                 if let ratio = setup.ratio {
                     LabeledContent("Ratio", value: "1:\(ratio.formatted(.number.precision(.fractionLength(1))))")
                 }
+            } header: {
+                Text("Dose")
+            } footer: {
+                if let adjustment = setup.adjustment, adjustment.variable != .grind {
+                    adjustmentHint(adjustment)
+                }
             }
 
-            Section("Grind setting") {
+            Section {
                 TextField("22 clicks, 4.2, or medium-fine", text: $setup.grindDisplayValue)
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
+                    .focused($grindIsFocused)
+            } header: {
+                HStack(alignment: .firstTextBaseline) {
+                    Text("Grind setting")
+
+                    Spacer(minLength: 8)
+
+                    // Above the field, not below: the keyboard covers a footer, and
+                    // this is the one thing worth reading while typing.
+                    if let adjustment = setup.adjustment, adjustment.variable == .grind {
+                        adjustmentHint(adjustment)
+                    }
+                }
             }
 
             Section("Time") {
@@ -91,7 +113,7 @@ struct BrewSetupView: View {
         }
         .scrollContentBackground(.hidden)
         .background(Color("CoffeeCanvas"))
-        .navigationTitle(coffee.name)
+        .navigationTitle(setup.coffee.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
@@ -110,6 +132,45 @@ struct BrewSetupView: View {
         } message: {
             Text("Your brew couldn't be saved. Please try again.")
         }
+    }
+
+    private func suggestionRow(_ suggestion: BrewSuggestion) -> some View {
+        Button {
+            setup.applySuggestion()
+
+            // A grind suggestion leaves the field empty on purpose, so point at it:
+            // otherwise applying one looks like nothing happened.
+            if setup.adjustment?.variable == .grind {
+                grindIsFocused = true
+            }
+        } label: {
+            HStack(spacing: 12) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(suggestion.title)
+                        .font(.subheadline.weight(.medium))
+                        .foregroundStyle(.primary)
+
+                    Text("After your brew on \(suggestion.source.sortDate.formatted(.dateTime.month(.abbreviated).day()))")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer(minLength: 0)
+
+                Text("Use")
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(Color("CoffeeTint"))
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityHint("Sets up this brew from the last one, with the suggested change")
+    }
+
+    private func adjustmentHint(_ adjustment: BrewAdjustment) -> some View {
+        Text("Previously \(adjustment.previousDisplayValue) · \(adjustment.title)")
+            .font(.footnote)
+            .foregroundStyle(Color("CoffeeTint"))
+            .textCase(nil)
     }
 
     private func amountField(_ placeholder: String, value: Binding<Double?>, unit: LocalizedStringKey) -> some View {

@@ -434,3 +434,264 @@ private func completedBrew(method: BrewMethod = .v60, water: Double? = 250,
     #expect(TasteDimension.overall.value(in: evaluation) == 5)
     #expect(TasteDimension.allCases.filter(\.isCumulative) == [.overall])
 }
+
+/// Returns the container too: a `ModelContext` does not keep its container
+/// alive, and using one whose container has been released traps inside SwiftData.
+@MainActor
+private func repeatContext() throws -> (ModelContainer, ModelContext, Coffee) {
+    let schema = Schema([Coffee.self, Brew.self, TasteEvaluation.self, BrewRecommendation.self])
+    let container = try ModelContainer(for: schema,
+                                       configurations: [ModelConfiguration(schema: schema, isStoredInMemoryOnly: true)])
+    let coffee = Coffee(name: "Test", origin: "Test", roastLevel: .medium)
+    container.mainContext.insert(coffee)
+    return (container, container.mainContext, coffee)
+}
+
+@MainActor
+private func source(in context: ModelContext, coffee: Coffee, method: BrewMethod = .v60,
+                    water: Double? = 250, beverage: Double? = nil,
+                    acidity: Int = 3, bitterness: Int = 3, strength: Int = 3,
+                    overall: Int = 3, goal: ImprovementGoal? = nil,
+                    completedAt: Date = t0) -> Brew {
+    let brew = Brew(coffee: coffee, method: method, coffeeGrams: 15,
+                    grindDisplayValue: "22", status: .completed, completedAt: completedAt,
+                    waterGrams: water, beverageGrams: beverage, temperatureCelsius: 94,
+                    targetDurationSeconds: 195, actualDurationSeconds: 168)
+    context.insert(brew)
+
+    let evaluation = TasteEvaluationViewModel(brew: brew)
+    evaluation.acidityValue = acidity
+    evaluation.bitternessValue = bitterness
+    evaluation.strengthValue = strength
+    evaluation.overallValue = overall
+    evaluation.improvementGoal = goal
+    _ = evaluation.save(in: context)
+
+    return brew
+}
+
+private struct BrewFields: Equatable {
+    var coffeeGrams: Double
+    var waterGrams: Double?
+    var beverageGrams: Double?
+    var temperatureCelsius: Double?
+    var grindDisplayValue: String
+    var targetDurationSeconds: Double?
+    var method: String
+
+    init(_ brew: Brew) {
+        coffeeGrams = brew.coffeeGrams
+        waterGrams = brew.waterGrams
+        beverageGrams = brew.beverageGrams
+        temperatureCelsius = brew.temperatureCelsius
+        grindDisplayValue = brew.grindDisplayValue
+        targetDurationSeconds = brew.targetDurationSeconds
+        method = brew.methodRawValue
+    }
+
+    func changing(_ change: (inout BrewFields) -> Void) -> BrewFields {
+        var copy = self
+        change(&copy)
+        return copy
+    }
+}
+
+@Test @MainActor func repeatCopiesEverySettingAndNoResult() throws {
+    let (container, context, coffee) = try repeatContext()
+    let original = source(in: context, coffee: coffee)
+
+    let setup = try #require(BrewSetupViewModel(repeating: original))
+    let copy = try #require(setup.saveDraft(in: context))
+
+    #expect(BrewFields(copy) == BrewFields(original))
+    #expect(copy.coffee === original.coffee)
+    #expect(copy.status == .draft)
+    #expect(copy.completedAt == nil)
+    #expect(copy.actualDurationSeconds == nil)
+    #expect(copy.tasteEvaluation == nil)
+    #expect(copy.recommendation == nil)
+}
+
+@Test @MainActor func repeatLeavesTheOriginalBrewUntouched() throws {
+    let (container, context, coffee) = try repeatContext()
+    let original = source(in: context, coffee: coffee, strength: 1, goal: .stronger)
+    let before = BrewFields(original)
+    let ruleBefore = original.recommendation?.ruleID
+
+    let setup = try #require(BrewSetupViewModel(repeating: original, adjustment: BrewAdjustment(brew: original)))
+    _ = try #require(setup.saveDraft(in: context))
+
+    #expect(BrewFields(original) == before)
+    #expect(original.status == .completed)
+    #expect(original.tasteEvaluation != nil)
+    #expect(original.recommendation?.ruleID == ruleBefore)
+}
+
+@Test @MainActor func waterAdjustmentChangesOnlyTheWater() throws {
+    let (container, context, coffee) = try repeatContext()
+    let original = source(in: context, coffee: coffee, strength: 1, goal: .stronger)
+
+    let adjustment = try #require(BrewAdjustment(brew: original))
+    #expect(adjustment.variable == .water)
+
+    let setup = try #require(BrewSetupViewModel(repeating: original, adjustment: adjustment))
+    let copy = try #require(setup.saveDraft(in: context))
+
+    #expect(copy.waterGrams == adjustment.suggestedGrams)
+    #expect(copy.waterGrams != original.waterGrams)
+    #expect(BrewFields(copy) == BrewFields(original).changing { $0.waterGrams = copy.waterGrams })
+}
+
+@Test @MainActor func espressoAdjustmentChangesOnlyTheBeverageYield() throws {
+    let (container, context, coffee) = try repeatContext()
+    let original = source(in: context, coffee: coffee, method: .espresso,
+                          water: nil, beverage: 36, strength: 1, goal: .stronger)
+
+    let adjustment = try #require(BrewAdjustment(brew: original))
+    #expect(adjustment.variable == .beverageYield)
+
+    let setup = try #require(BrewSetupViewModel(repeating: original, adjustment: adjustment))
+    let copy = try #require(setup.saveDraft(in: context))
+
+    #expect(copy.beverageGrams == adjustment.suggestedGrams)
+    #expect(copy.beverageGrams != original.beverageGrams)
+    #expect(BrewFields(copy) == BrewFields(original).changing { $0.beverageGrams = copy.beverageGrams })
+}
+
+@Test @MainActor func grindAdjustmentEmptiesTheFieldAndBlocksSaving() throws {
+    let (container, context, coffee) = try repeatContext()
+    let original = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)
+
+    let adjustment = try #require(BrewAdjustment(brew: original))
+    #expect(adjustment.variable == .grind)
+    #expect(adjustment.suggestedGrams == nil)
+    #expect(adjustment.previousDisplayValue == "22")
+
+    let setup = try #require(BrewSetupViewModel(repeating: original, adjustment: adjustment))
+    #expect(setup.grindDisplayValue.isEmpty)
+    #expect(!setup.canSave)
+
+    setup.grindDisplayValue = "21"
+    let copy = try #require(setup.saveDraft(in: context))
+    #expect(BrewFields(copy) == BrewFields(original).changing { $0.grindDisplayValue = "21" })
+}
+
+@Test @MainActor func noAdjustmentWhenThereIsNothingToChange() throws {
+    let (container, context, coffee) = try repeatContext()
+
+    let kept = source(in: context, coffee: coffee, goal: .keepAsIs)
+    #expect(kept.recommendation?.direction == .maintain)
+    #expect(BrewAdjustment(brew: kept) == nil)
+
+    let conflicting = source(in: context, coffee: coffee, acidity: 5, bitterness: 5)
+    #expect(conflicting.recommendation?.direction == .unclear)
+    #expect(BrewAdjustment(brew: conflicting) == nil)
+
+    let unevaluated = Brew(coffee: coffee, method: .v60, coffeeGrams: 15,
+                           grindDisplayValue: "22", status: .completed,
+                           completedAt: t0, waterGrams: 250)
+    #expect(BrewAdjustment(brew: unevaluated) == nil)
+}
+
+@Test @MainActor func anArchivedCoffeeCannotStartANewBrewFromItsHistory() throws {
+    let (container, context, coffee) = try repeatContext()
+    let original = source(in: context, coffee: coffee, strength: 1, goal: .stronger)
+
+    #expect(BrewSetupViewModel(repeating: original) != nil)
+
+    coffee.archive()
+
+    #expect(BrewSetupViewModel(repeating: original) == nil)
+    #expect(BrewSetupViewModel(repeating: original,
+                               adjustment: BrewAdjustment(brew: original)) == nil)
+    #expect(coffee.completedBrews.count == 1)
+    _ = container
+}
+
+@Test @MainActor func sharedInputRebuildsThePersistedRecommendation() throws {
+    let (container, context, coffee) = try repeatContext()
+    let brew = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)
+    let evaluation = try #require(brew.tasteEvaluation)
+
+    let decision = RecommendationEngine().recommend(for: RecommendationInput(brew: brew, evaluation: evaluation))
+
+    #expect(decision?.ruleID.rawValue == brew.recommendation?.ruleID)
+}
+
+@Test @MainActor func setupOffersTheLastSuggestionButNeverAppliesItOnItsOwn() throws {
+    let (container, context, coffee) = try repeatContext()
+    let last = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)
+
+    let setup = BrewSetupViewModel(coffee: coffee, method: .v60)
+    let suggestion = try #require(setup.suggestion)
+
+    #expect(suggestion.source === last)
+    #expect(suggestion.adjustment?.variable == .grind)
+
+    // Entering Brew Setup leaves the method defaults alone.
+    #expect(setup.adjustment == nil)
+    #expect(setup.coffeeGrams == BrewMethod.v60.defaults.coffeeGrams)
+    #expect(setup.grindDisplayValue.isEmpty)
+
+    setup.applySuggestion()
+
+    #expect(setup.adjustment?.variable == .grind)
+    #expect(setup.coffeeGrams == last.coffeeGrams)
+    #expect(setup.waterGrams == last.waterGrams)
+    #expect(setup.grindDisplayValue.isEmpty)
+    _ = container
+}
+
+@Test @MainActor func theSuggestionIsPerMethod() throws {
+    let (container, context, coffee) = try repeatContext()
+    _ = source(in: context, coffee: coffee, method: .frenchPress, water: 500,
+               acidity: 5, strength: 2, overall: 2)
+
+    #expect(BrewSetupViewModel(coffee: coffee, method: .v60).suggestion == nil)
+    #expect(BrewSetupViewModel(coffee: coffee, method: .frenchPress).suggestion != nil)
+    _ = container
+}
+
+/// A brew the person enjoyed must not be overruled by an older adjustment: the
+/// engine just told them to keep these settings.
+@Test @MainActor func aBrewYouLikedOffersToReproduceItself() throws {
+    let (container, context, coffee) = try repeatContext()
+    _ = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)
+    let liked = source(in: context, coffee: coffee, goal: .keepAsIs,
+                       completedAt: t0.addingTimeInterval(3600))
+
+    #expect(liked.recommendation?.direction == .maintain)
+
+    let setup = BrewSetupViewModel(coffee: coffee, method: .v60)
+    let suggestion = try #require(setup.suggestion)
+
+    #expect(suggestion.source === liked)
+    #expect(suggestion.adjustment == nil)
+    if case .keep = suggestion.kind {} else {
+        Issue.record("Expected a keep suggestion, got \(suggestion.kind)")
+    }
+
+    setup.applySuggestion()
+
+    #expect(setup.grindDisplayValue == liked.grindDisplayValue)
+    #expect(setup.waterGrams == liked.waterGrams)
+    #expect(setup.canSave)
+    _ = container
+}
+
+/// Feedback the engine cannot read is still advice: repeat it once more unchanged.
+@Test @MainActor func anUnclearEvaluationOffersTheSameBrewAgain() throws {
+    let (container, context, coffee) = try repeatContext()
+    let unclear = source(in: context, coffee: coffee, acidity: 5, bitterness: 5)
+
+    #expect(unclear.recommendation?.direction == .unclear)
+
+    let suggestion = try #require(BrewSetupViewModel(coffee: coffee, method: .v60).suggestion)
+
+    #expect(suggestion.source === unclear)
+    #expect(suggestion.adjustment == nil)
+    if case .tryAgain = suggestion.kind {} else {
+        Issue.record("Expected a tryAgain suggestion, got \(suggestion.kind)")
+    }
+    _ = container
+}

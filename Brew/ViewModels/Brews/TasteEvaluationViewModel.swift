@@ -57,15 +57,12 @@ final class TasteEvaluationViewModel {
         }
 
         let input = RecommendationInput(
+            brew: brew,
             acidity: acidityValue,
             bitterness: bitternessValue,
             strength: strengthValue,
             overall: overallValue,
-            goal: improvementGoal,
-            method: brew.method ?? .v60,
-            waterGrams: brew.waterGrams,
-            beverageGrams: brew.beverageGrams,
-            grindDisplayValue: brew.grindDisplayValue
+            goal: improvementGoal
         )
 
         if let decision = RecommendationEngine().recommend(for: input) {

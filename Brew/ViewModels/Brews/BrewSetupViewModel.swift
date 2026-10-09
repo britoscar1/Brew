@@ -12,9 +12,19 @@ import SwiftData
 @MainActor
 @Observable
 final class BrewSetupViewModel {
-    private let coffee: Coffee
-
+    let coffee: Coffee
     let method: BrewMethod
+
+    /// The adjustment currently seeded into these values, if any.
+    private(set) var adjustment: BrewAdjustment?
+
+    /// The most recent brew of this coffee and method whose recommendation can
+    /// still be acted on. Offered at the top of Brew Setup, never applied on its own.
+    let suggestion: BrewSuggestion?
+
+    /// True once the person took the suggestion. Not the same as having an
+    /// adjustment: keeping the settings you liked changes nothing to flag.
+    private(set) var hasAppliedSuggestion = false
 
     var coffeeGrams: Double?
     var waterGrams: Double?
@@ -27,12 +37,63 @@ final class BrewSetupViewModel {
     init(coffee: Coffee, method: BrewMethod) {
         self.coffee = coffee
         self.method = method
+        adjustment = nil
+        suggestion = BrewSuggestion(lastOf: coffee, method: method)
 
         let defaults = method.defaults
         coffeeGrams = defaults.coffeeGrams
         waterGrams = defaults.waterGrams
         beverageGrams = defaults.beverageGrams
         temperatureCelsius = defaults.temperatureCelsius
+    }
+
+    /// Replaces the method defaults with the suggested brew's values. Only the
+    /// person tapping Apply calls this; entering Brew Setup never does.
+    func applySuggestion() {
+        guard let suggestion else { return }
+
+        adjustment = suggestion.adjustment
+        hasAppliedSuggestion = true
+        seed(from: suggestion.source, adjustment: suggestion.adjustment)
+    }
+
+    /// Fails for an archived coffee: it is out of the active library, so it cannot
+    /// start a new brew from its history either (COF-04).
+    init?(repeating source: Brew, adjustment: BrewAdjustment? = nil) {
+        guard let coffee = source.coffee, coffee.archivedAt == nil,
+              let method = source.method else { return nil }
+
+        self.coffee = coffee
+        self.method = method
+        self.adjustment = adjustment
+        suggestion = nil
+
+        seed(from: source, adjustment: adjustment)
+    }
+
+    private func seed(from source: Brew, adjustment: BrewAdjustment?) {
+        coffeeGrams = source.coffeeGrams
+        waterGrams = source.waterGrams
+        beverageGrams = source.beverageGrams
+        temperatureCelsius = source.temperatureCelsius
+        grindDisplayValue = source.grindDisplayValue
+        durationMinutes = nil
+        durationSeconds = nil
+
+        if let target = source.targetDurationSeconds, target > 0 {
+            let total = Int(target)
+            durationMinutes = total / 60
+            durationSeconds = total % 60
+        }
+
+        guard let adjustment else { return }
+
+        switch adjustment.variable {
+        case .grind: grindDisplayValue = ""
+        case .water: waterGrams = adjustment.suggestedGrams
+        case .beverageYield: beverageGrams = adjustment.suggestedGrams
+        case .none: break
+        }
     }
 
     var usesBeverageYield: Bool {
