@@ -81,14 +81,27 @@ struct BrewModeView: View {
                     .minimumScaleFactor(0.5)
                     .lineLimit(1)
                     .foregroundStyle(session?.isPaused == true ? .secondary : .primary)
+                    .accessibilityElement(children: .ignore)
+                    .accessibilityLabel(session?.isPaused == true
+                                        ? Text("Elapsed time, paused")
+                                        : Text("Elapsed time"))
+                    .accessibilityValue(elapsedDescription(at: context.date))
             }
 
             if session?.isPaused == true {
                 Text("Paused")
                     .font(.subheadline.weight(.medium))
                     .foregroundStyle(.secondary)
+                    .accessibilityHidden(true)
             }
         }
+    }
+
+    /// "2 minutes, 45 seconds", not "2:45", which VoiceOver reads as a time of day.
+    private func elapsedDescription(at date: Date) -> Text {
+        let total = Int(brew.elapsedSeconds(at: date))
+        return Text(Duration.seconds(total)
+            .formatted(.units(allowed: [.minutes, .seconds], width: .wide)))
     }
 
     private var details: some View {

@@ -38,6 +38,7 @@ struct BrewRow: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
         }
+        .accessibilityElement(children: .combine)
     }
 
     private var summary: String {

@@ -70,6 +70,9 @@ struct BrewSettingsCard: View {
                 }
                 .padding(.horizontal, 18)
                 .padding(.vertical, 14)
+                .accessibilityElement(children: .ignore)
+                .accessibilityLabel(item.title)
+                .accessibilityValue(item.value)
 
                 if index < settings.count - 1 {
                     Divider()
