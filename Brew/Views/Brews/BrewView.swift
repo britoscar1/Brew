@@ -18,8 +18,11 @@ enum BrewStep: Hashable {
 }
 
 struct BrewView: View {
+    @Environment(\.modelContext) private var modelContext
     @State private var path: [BrewStep] = []
+    @State private var showsDiscardConfirmation = false
     @Query(filter: #Predicate<Coffee> { $0.archivedAt == nil }) private var coffees: [Coffee]
+    @Query private var brews: [Brew]
 
     private let spacing: CGFloat = 14
 
@@ -46,10 +49,26 @@ struct BrewView: View {
                         Text("Add a coffee in your library first.")
                     }
                 } else {
-                    methodGrid
+                    VStack(spacing: spacing) {
+                        if let pending {
+                            unfinishedBrewCard(pending)
+                        }
+
+                        methodGrid
+                    }
+                    .padding(16)
                 }
             }
             .background(Color("CoffeeCanvas"))
+            .confirmationDialog("Discard this brew?", isPresented: $showsDiscardConfirmation,
+                                titleVisibility: .visible) {
+                Button("Discard", role: .destructive) {
+                    if let pending { InterruptedBrews.discard(pending, in: modelContext) }
+                }
+                Button("Cancel", role: .cancel) { }
+            } message: {
+                Text("It was never finished, so it is not in your history. This cannot be undone.")
+            }
             .navigationDestination(for: BrewStep.self) { step in
                 switch step {
                 case let .chooseCoffee(method):
@@ -82,6 +101,48 @@ struct BrewView: View {
         }
     }
 
+    /// Only the newest one: discarding it brings up the next, so they drain
+    /// instead of piling up behind a counter.
+    private var pending: Brew? {
+        InterruptedBrews.pending(in: brews).first
+    }
+
+    private func unfinishedBrewCard(_ brew: Brew) -> some View {
+        HStack(spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Text("Unfinished · \(brew.createdAt.formatted(.relative(presentation: .named)))")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+
+                Text(summary(of: brew))
+                    .font(.subheadline.weight(.medium))
+            }
+
+            Spacer(minLength: 0)
+
+            Button("Discard") { showsDiscardConfirmation = true }
+                .buttonStyle(.plain)
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+
+            Button("Continue") { path.append(.brewMode(brew)) }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.small)
+        }
+        .padding(14)
+        .background(Color("CoffeeCrema").opacity(0.2), in: RoundedRectangle(cornerRadius: 20))
+        .overlay {
+            RoundedRectangle(cornerRadius: 20)
+                .stroke(Color("CoffeeTint").opacity(0.12))
+        }
+    }
+
+    private func summary(of brew: Brew) -> String {
+        [brew.method?.title, brew.coffee?.name]
+            .compactMap { $0 }
+            .joined(separator: " · ")
+    }
+
     private var methodGrid: some View {
         VStack(spacing: spacing) {
             ForEach(methodRows, id: \.self) { row in
@@ -95,7 +156,6 @@ struct BrewView: View {
                 }
             }
         }
-        .padding(16)
         .frame(maxWidth: .infinity, maxHeight: .infinity)
     }
 }
