@@ -8,9 +8,11 @@
 import SwiftUI
 import SwiftData
 
-private struct RepeatRequest: Hashable {
+private struct RepeatRequest: Identifiable {
     let brew: Brew
     let appliesAdjustment: Bool
+
+    var id: String { "\(brew.persistentModelID)-\(appliesAdjustment)" }
 }
 
 struct BrewDetailView: View {
@@ -20,7 +22,7 @@ struct BrewDetailView: View {
     @State private var brewToEvaluate: Brew?
     @State private var positionToReplace: Int?
     @State private var repeatRequest: RepeatRequest?
-    @State private var brewToStart: Brew?
+    @State private var flowPath: [BrewStep] = []
 
     var body: some View {
         ScrollView {
@@ -115,19 +117,26 @@ struct BrewDetailView: View {
             }
             .tint(Color("CoffeeTint"))
         }
-        .navigationDestination(item: $repeatRequest) { request in
+        .fullScreenCover(item: $repeatRequest) { request in
             if let setup = BrewSetupViewModel(repeating: request.brew,
                                               adjustment: request.appliesAdjustment ? adjustment : nil) {
-                BrewSetupView(setup: setup) { brewToStart = $0 }
+                NavigationStack(path: $flowPath) {
+                    BrewSetupView(setup: setup) { flowPath.append(.brewMode($0)) }
+                        .toolbar {
+                            ToolbarItem(placement: .cancellationAction) {
+                                Button("Cancel", action: closeBrewFlow)
+                            }
+                        }
+                        .brewFlow(path: $flowPath, onFinish: closeBrewFlow)
+                }
+                .tint(Color("CoffeeTint"))
             }
         }
-        .navigationDestination(item: $brewToStart) { newBrew in
-            BrewModeView(brew: newBrew) { finished in
-                brewToStart = nil
-                repeatRequest = nil
-                brewToEvaluate = finished
-            }
-        }
+    }
+
+    private func closeBrewFlow() {
+        flowPath.removeAll()
+        repeatRequest = nil
     }
 
     /// Absent for a brew with no coffee, and for an archived one: COF-04 keeps
