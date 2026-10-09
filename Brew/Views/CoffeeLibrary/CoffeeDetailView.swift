@@ -59,6 +59,21 @@ struct CoffeeDetailView: View {
             }
             .listRowBackground(cardBackground)
 
+            if !topBrews.isEmpty {
+                Section("Top Brews") {
+                    ForEach(topBrews) { brew in
+                        NavigationLink {
+                            BrewDetailView(brew: brew)
+                        } label: {
+                            BrewRow(brew: brew)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityHint("Opens brew details")
+                    }
+                }
+                .listRowBackground(cardBackground)
+            }
+
             Section("Brew History") {
                 if brews.isEmpty {
                     Text("No brews logged yet.")
@@ -143,6 +158,10 @@ struct CoffeeDetailView: View {
 
     private var brews: [Brew] {
         coffee.completedBrews
+    }
+
+    private var topBrews: [Brew] {
+        TopBrewsManager(coffee: coffee).ranked
     }
 
     private var header: some View {

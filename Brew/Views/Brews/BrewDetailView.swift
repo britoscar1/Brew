@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import SwiftData
 
 private struct RepeatRequest: Hashable {
     let brew: Brew
@@ -15,7 +16,9 @@ private struct RepeatRequest: Hashable {
 struct BrewDetailView: View {
     let brew: Brew
 
+    @Environment(\.modelContext) private var modelContext
     @State private var brewToEvaluate: Brew?
+    @State private var positionToReplace: Int?
     @State private var repeatRequest: RepeatRequest?
     @State private var brewToStart: Brew?
 
@@ -78,6 +81,29 @@ struct BrewDetailView: View {
         .background(Color("CoffeeCanvas"))
         .navigationTitle("Brew")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            if let top, top.canHoldAPosition(brew) {
+                ToolbarItem(placement: .primaryAction) {
+                    topBrewsMenu(top)
+                }
+            }
+        }
+        .confirmationDialog(
+            "Replace position \(positionToReplace ?? 0)?",
+            isPresented: Binding(get: { positionToReplace != nil },
+                                 set: { if !$0 { positionToReplace = nil } }),
+            titleVisibility: .visible
+        ) {
+            Button("Replace") {
+                if let top, let position = positionToReplace {
+                    top.assign(brew, to: position, in: modelContext)
+                }
+                positionToReplace = nil
+            }
+            Button("Cancel", role: .cancel) { positionToReplace = nil }
+        } message: {
+            Text("The brew there leaves the Top 3 and stays in your history.")
+        }
         .sheet(item: $brewToEvaluate) { target in
             NavigationStack {
                 TasteEvaluationView(brew: target) { _ in brewToEvaluate = nil }
@@ -101,6 +127,52 @@ struct BrewDetailView: View {
                 repeatRequest = nil
                 brewToEvaluate = finished
             }
+        }
+    }
+
+    /// Absent for a brew with no coffee, and for an archived one: COF-04 keeps
+    /// its Top 3 readable, not editable.
+    private var top: TopBrewsManager? {
+        guard let coffee = brew.coffee, coffee.archivedAt == nil else { return nil }
+        return TopBrewsManager(coffee: coffee)
+    }
+
+    private func topBrewsMenu(_ top: TopBrewsManager) -> some View {
+        Menu {
+            ForEach(TopBrewsManager.positions, id: \.self) { position in
+                Button {
+                    choose(position, in: top)
+                } label: {
+                    if brew.topBrewRank == position {
+                        Label("Position \(position)", systemImage: "checkmark")
+                    } else if let occupant = top.brew(at: position) {
+                        Text("Position \(position)")
+                        Text("Replaces \(occupant.sortDate.formatted(.dateTime.month(.abbreviated).day()))")
+                    } else {
+                        Text("Position \(position)")
+                    }
+                }
+            }
+
+            if brew.topBrewRank != nil {
+                Section {
+                    Button("Remove from Top 3", systemImage: "star.slash", role: .destructive) {
+                        top.remove(brew, in: modelContext)
+                    }
+                }
+            }
+        } label: {
+            Label("Top 3", systemImage: brew.topBrewRank == nil ? "star" : "star.fill")
+        }
+    }
+
+    private func choose(_ position: Int, in top: TopBrewsManager) {
+        guard brew.topBrewRank != position else { return }
+
+        if top.brew(at: position) == nil {
+            top.assign(brew, to: position, in: modelContext)
+        } else {
+            positionToReplace = position
         }
     }
 
