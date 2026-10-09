@@ -33,7 +33,7 @@ struct CoffeeDetailView: View {
             }
             .listRowBackground(cardBackground)
 
-            Section("Bean Information") {
+            Section("Bean information") {
                 if coffee.roastLevel == nil {
                     LabeledContent("Roast level", value: String(localized: "Unknown roast"))
                 }
@@ -60,7 +60,7 @@ struct CoffeeDetailView: View {
             .listRowBackground(cardBackground)
 
             if !topBrews.isEmpty {
-                Section("Top Brews") {
+                Section("Top brews") {
                     ForEach(topBrews) { brew in
                         NavigationLink {
                             BrewDetailView(brew: brew)
@@ -74,7 +74,7 @@ struct CoffeeDetailView: View {
                 .listRowBackground(cardBackground)
             }
 
-            Section("Brew History") {
+            Section("Brew history") {
                 if brews.isEmpty {
                     Text("No brews logged yet.")
                         .foregroundStyle(.secondary)
@@ -152,7 +152,7 @@ struct CoffeeDetailView: View {
             }
             Button("Cancel", role: .cancel) { }
         } message: {
-            Text("You can restore it later from Archived Coffees.")
+            Text("You can restore it later from Archived coffees.")
         }
     }
 
@@ -217,7 +217,7 @@ private struct BrewHistoryView: View {
         .contentMargins(.top, 12, for: .scrollContent)
         .scrollContentBackground(.hidden)
         .background(Color("CoffeeCanvas"))
-        .navigationTitle("Brew History")
+        .navigationTitle("Brew history")
         .navigationBarTitleDisplayMode(.inline)
     }
 

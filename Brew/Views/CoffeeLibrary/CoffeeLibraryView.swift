@@ -74,11 +74,11 @@ struct CoffeeLibraryView: View {
                     NavigationLink {
                         ArchivedCoffeesView()
                     } label: {
-                        Label("Archived Coffees", systemImage: "archivebox")
+                        Label("Archived coffees", systemImage: "archivebox")
                     }
                 }
                 ToolbarItem(placement: .primaryAction) {
-                    Button("Add Coffee", systemImage: "plus") { showsAddCoffee = true }
+                    Button("Add coffee", systemImage: "plus") { showsAddCoffee = true }
                 }
             }
             .sheet(isPresented: $showsAddCoffee) { CoffeeFormView() }
@@ -94,7 +94,7 @@ struct CoffeeLibraryView: View {
                 }
                 Button("Cancel", role: .cancel) { coffeeToArchive = nil }
             } message: {
-                Text("You can restore it later from Archived Coffees.")
+                Text("You can restore it later from Archived coffees.")
             }
         }
     }
