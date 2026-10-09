@@ -695,3 +695,131 @@ private struct BrewFields: Equatable {
     }
     _ = container
 }
+
+// MARK: - Top 3
+
+/// Taste is not a requirement: a completed brew qualifies even unevaluated (TOP-01).
+@Test @MainActor func anUnevaluatedCompletedBrewCanJoinTheTop3() throws {
+    let (container, context, coffee) = try repeatContext()
+    let brew = Brew(coffee: coffee, method: .v60, coffeeGrams: 15,
+                    grindDisplayValue: "22", status: .completed, completedAt: t0,
+                    waterGrams: 250, temperatureCelsius: 94)
+    context.insert(brew)
+
+    let top = TopBrewsManager(coffee: coffee)
+    top.assign(brew, to: 1, in: context)
+
+    #expect(brew.tasteEvaluation == nil)
+    #expect(brew.topBrewRank == 1)
+    _ = container
+}
+
+@Test @MainActor func anIncompleteBrewCannotJoinTheTop3() throws {
+    let (container, context, coffee) = try repeatContext()
+    let draft = Brew(coffee: coffee, method: .v60, coffeeGrams: 15,
+                     grindDisplayValue: "22", waterGrams: 250, temperatureCelsius: 94)
+    context.insert(draft)
+
+    TopBrewsManager(coffee: coffee).assign(draft, to: 1, in: context)
+
+    #expect(draft.status == .draft)
+    #expect(draft.topBrewRank == nil)
+    _ = container
+}
+
+@Test @MainActor func aBrewOfAnotherCoffeeCannotJoinThisTop3() throws {
+    let (container, context, coffee) = try repeatContext()
+    let other = Coffee(name: "Other", origin: "Test", roastLevel: .medium)
+    context.insert(other)
+    let brew = source(in: context, coffee: other)
+
+    TopBrewsManager(coffee: coffee).assign(brew, to: 1, in: context)
+
+    #expect(brew.topBrewRank == nil)
+    #expect(TopBrewsManager(coffee: coffee).ranked.isEmpty)
+    _ = container
+}
+
+@Test @MainActor func onlyThreePositionsExist() throws {
+    let (container, context, coffee) = try repeatContext()
+    let brew = source(in: context, coffee: coffee)
+    let top = TopBrewsManager(coffee: coffee)
+
+    for position in [-1, 0, 4, 10] {
+        top.assign(brew, to: position, in: context)
+        #expect(brew.topBrewRank == nil)
+    }
+    _ = container
+}
+
+@Test @MainActor func aBrewHoldsASinglePosition() throws {
+    let (container, context, coffee) = try repeatContext()
+    let brew = source(in: context, coffee: coffee)
+    let top = TopBrewsManager(coffee: coffee)
+
+    top.assign(brew, to: 1, in: context)
+    top.assign(brew, to: 3, in: context)
+
+    #expect(brew.topBrewRank == 3)
+    #expect(top.brew(at: 1) == nil)
+    #expect(top.ranked.count == 1)
+    _ = container
+}
+
+@Test @MainActor func aPositionBelongsToASingleBrew() throws {
+    let (container, context, coffee) = try repeatContext()
+    let first = source(in: context, coffee: coffee)
+    let second = source(in: context, coffee: coffee, completedAt: t0.addingTimeInterval(3600))
+    let top = TopBrewsManager(coffee: coffee)
+
+    top.assign(first, to: 1, in: context)
+    top.assign(second, to: 1, in: context)
+
+    #expect(first.topBrewRank == nil)
+    #expect(second.topBrewRank == 1)
+    #expect(top.ranked.count == 1)
+    _ = container
+}
+
+/// Leaving the Top 3 is not deleting: the brew stays in the history (TOP-01).
+@Test @MainActor func leavingTheTop3KeepsTheBrewInTheHistory() throws {
+    let (container, context, coffee) = try repeatContext()
+    let brew = source(in: context, coffee: coffee)
+    let top = TopBrewsManager(coffee: coffee)
+    top.assign(brew, to: 2, in: context)
+
+    top.remove(brew, in: context)
+
+    #expect(brew.topBrewRank == nil)
+    #expect(top.ranked.isEmpty)
+    #expect(coffee.completedBrews.contains { $0 === brew })
+    _ = container
+}
+
+@Test @MainActor func theTop3IsOrderedByPositionAndNotByDate() throws {
+    let (container, context, coffee) = try repeatContext()
+    let oldest = source(in: context, coffee: coffee)
+    let newest = source(in: context, coffee: coffee, completedAt: t0.addingTimeInterval(3600))
+    let top = TopBrewsManager(coffee: coffee)
+
+    top.assign(newest, to: 3, in: context)
+    top.assign(oldest, to: 1, in: context)
+
+    #expect(top.ranked.map(\.topBrewRank) == [1, 3])
+    #expect(top.ranked.first === oldest)
+    _ = container
+}
+
+/// RPT-01 excludes the Top 3 position from what a repeat copies.
+@Test @MainActor func repeatingATopBrewDoesNotInheritItsPosition() throws {
+    let (container, context, coffee) = try repeatContext()
+    let best = source(in: context, coffee: coffee)
+    TopBrewsManager(coffee: coffee).assign(best, to: 1, in: context)
+
+    let setup = try #require(BrewSetupViewModel(repeating: best))
+    let repeated = try #require(setup.saveDraft(in: context))
+
+    #expect(repeated.topBrewRank == nil)
+    #expect(best.topBrewRank == 1)
+    _ = container
+}

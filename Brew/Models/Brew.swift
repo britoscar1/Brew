@@ -25,6 +25,7 @@ class Brew {
     var targetDurationSeconds: Double?
     var completedAt: Date?
     var actualDurationSeconds: Double?
+    var topBrewRank: Int?
 
     @Relationship(deleteRule: .cascade, inverse: \TasteEvaluation.brew)
     var tasteEvaluation: TasteEvaluation?

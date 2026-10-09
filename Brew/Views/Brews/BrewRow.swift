@@ -12,7 +12,14 @@ struct BrewRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
-            HStack {
+            HStack(spacing: 6) {
+                if let rank = brew.topBrewRank {
+                    Text("#\(rank)")
+                        .font(.caption.weight(.bold))
+                        .foregroundStyle(Color("CoffeeTint"))
+                        .accessibilityLabel("Top 3, position \(rank)")
+                }
+
                 Text(brew.method?.title ?? String(localized: "Unknown method"))
                     .font(.subheadline.weight(.medium))
 
