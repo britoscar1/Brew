@@ -8,14 +8,6 @@
 import SwiftUI
 import SwiftData
 
-enum BrewStep: Hashable {
-    case chooseCoffee(BrewMethod)
-    case setup(Coffee, BrewMethod)
-    case repeatSetup(Brew, applyingAdjustment: Bool)
-    case brewMode(Brew)
-    case evaluate(Brew)
-    case recommendation(Brew)
-}
 
 struct BrewView: View {
     @Environment(\.modelContext) private var modelContext
@@ -69,33 +61,7 @@ struct BrewView: View {
             } message: {
                 Text("It was never finished, so it is not in your history. This cannot be undone.")
             }
-            .navigationDestination(for: BrewStep.self) { step in
-                switch step {
-                case let .chooseCoffee(method):
-                    BrewCoffeePickerView(method: method)
-                case let .setup(coffee, method):
-                    BrewSetupView(setup: BrewSetupViewModel(coffee: coffee, method: method)) { brew in
-                        path.append(.brewMode(brew))
-                    }
-                case let .brewMode(brew):
-                    BrewModeView(brew: brew) { path = [.evaluate($0)] }
-                case let .evaluate(brew):
-                    TasteEvaluationView(brew: brew) { path.append(.recommendation($0)) }
-                case let .repeatSetup(source, applyingAdjustment):
-                    if let setup = BrewSetupViewModel(
-                        repeating: source,
-                        adjustment: applyingAdjustment ? BrewAdjustment(brew: source) : nil) {
-                        BrewSetupView(setup: setup) { path.append(.brewMode($0)) }
-                    }
-                case let .recommendation(brew):
-                    RecommendationView(
-                        brew: brew,
-                        onFinish: { path.removeAll() },
-                        onBrewAgain: { applying in
-                            path = [.repeatSetup(brew, applyingAdjustment: applying)]
-                        })
-                }
-            }
+            .brewFlow(path: $path) { path.removeAll() }
             .navigationTitle("How are you brewing?")
             .navigationBarTitleDisplayMode(.inline)
         }
