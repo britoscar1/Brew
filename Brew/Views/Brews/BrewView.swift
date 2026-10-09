@@ -13,6 +13,7 @@ struct BrewView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var path: [BrewStep] = []
+    @State private var showsSaveError = false
     @State private var showsDiscardConfirmation = false
     @Query(filter: #Predicate<Coffee> { $0.archivedAt == nil }) private var coffees: [Coffee]
     @Query private var brews: [Brew]
@@ -29,7 +30,7 @@ struct BrewView: View {
     var body: some View {
         NavigationStack(path: $path) {
             Group {
-                if coffees.isEmpty {
+                if coffees.isEmpty && pending == nil {
                     ContentUnavailableView {
                         Label {
                             Text("Nothing to brew yet")
@@ -49,7 +50,12 @@ struct BrewView: View {
                                 unfinishedBrewCard(pending)
                             }
 
-                            methodGrid
+                            if coffees.isEmpty {
+                                Text("Restore a coffee in your library to start a new brew.")
+                                    .foregroundStyle(.secondary)
+                            } else {
+                                methodGrid
+                            }
                         }
                         .padding(16)
                     }
@@ -60,12 +66,14 @@ struct BrewView: View {
             .confirmationDialog("Discard this brew?", isPresented: $showsDiscardConfirmation,
                                 titleVisibility: .visible) {
                 Button("Discard", role: .destructive) {
-                    if let pending { InterruptedBrews.discard(pending, in: modelContext) }
+                    if let pending { showsSaveError = !InterruptedBrews.discard(pending, in: modelContext) }
                 }
+                .accessibilityIdentifier("pending.confirmDiscard")
                 Button("Cancel", role: .cancel) { }
             } message: {
                 Text("It was never finished, so it is not in your history. This cannot be undone.")
             }
+            .persistenceErrorAlert(isPresented: $showsSaveError)
             .brewFlow(path: $path) { path.removeAll() }
             .navigationTitle("How are you brewing?")
             .navigationBarTitleDisplayMode(.inline)
@@ -98,11 +106,13 @@ struct BrewView: View {
 
             HStack(spacing: 12) {
                 Button("Discard") { showsDiscardConfirmation = true }
+                    .accessibilityIdentifier("pending.discard")
                     .buttonStyle(.plain)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
 
                 Button("Continue") { path.append(.brewMode(brew)) }
+                    .accessibilityIdentifier("pending.continue")
                     .buttonStyle(.borderedProminent)
                     .controlSize(.small)
             }

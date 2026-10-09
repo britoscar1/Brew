@@ -16,6 +16,7 @@ final class TasteEvaluation {
     var strengthValue: Int
     var overallValue: Int
     var improvementGoalRawValue: String?
+    var notes: String?
     var createdAt: Date
     var updatedAt: Date
 

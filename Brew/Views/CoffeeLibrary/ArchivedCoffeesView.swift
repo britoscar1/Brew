@@ -10,6 +10,7 @@ import SwiftData
 
 struct ArchivedCoffeesView: View {
     @Environment(\.modelContext) private var modelContext
+    @State private var showsSaveError = false
     @Query(filter: #Predicate<Coffee> { $0.archivedAt != nil },
            sort: \Coffee.archivedAt, order: .reverse) private var coffees: [Coffee]
 
@@ -48,12 +49,12 @@ struct ArchivedCoffeesView: View {
                 )
             }
         }
+        .persistenceErrorAlert(isPresented: $showsSaveError)
         .navigationTitle("Archived")
         .navigationBarTitleDisplayMode(.inline)
     }
 
     private func restore(_ coffee: Coffee) {
-        coffee.restore()
-        try? modelContext.save()
+        showsSaveError = !coffee.restore(in: modelContext)
     }
 }

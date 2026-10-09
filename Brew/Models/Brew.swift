@@ -26,6 +26,13 @@ class Brew {
     var completedAt: Date?
     var actualDurationSeconds: Double?
     var topBrewRank: Int?
+    var recipeName: String?
+    var guidedStepsData: Data?
+
+    var guidedSteps: [GuidedBrewStep] {
+        guard let guidedStepsData else { return [] }
+        return (try? JSONDecoder().decode([GuidedBrewStep].self, from: guidedStepsData)) ?? []
+    }
 
     @Relationship(deleteRule: .cascade, inverse: \TasteEvaluation.brew)
     var tasteEvaluation: TasteEvaluation?

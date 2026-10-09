@@ -36,20 +36,25 @@ struct TopBrewsManager {
 
     /// Moves `brew` into `position`, displacing whoever was there. The caller
     /// confirms that replacement first — this type does not ask.
-    func assign(_ brew: Brew, to position: Int, in context: ModelContext) {
-        guard Self.positions.contains(position), canHoldAPosition(brew) else { return }
-
-        self.brew(at: position)?.topBrewRank = nil
-        brew.topBrewRank = position
-
-        try? context.save()
+    @discardableResult
+    func assign(_ brew: Brew, to position: Int, in context: ModelContext) -> Bool {
+        guard Self.positions.contains(position), canHoldAPosition(brew) else { return false }
+        let snapshot = coffee.brews.map { ($0, $0.topBrewRank) }
+        return PersistenceAction.save(in: context, restore: {
+            for (brew, rank) in snapshot { brew.topBrewRank = rank }
+        }) {
+            self.brew(at: position)?.topBrewRank = nil
+            brew.topBrewRank = position
+        }
     }
 
     /// Leaves the brew in the history, out of the Top 3.
-    func remove(_ brew: Brew, in context: ModelContext) {
-        guard brew.coffee === coffee else { return }
-
-        brew.topBrewRank = nil
-        try? context.save()
+    @discardableResult
+    func remove(_ brew: Brew, in context: ModelContext) -> Bool {
+        guard brew.coffee === coffee else { return false }
+        let rank = brew.topBrewRank
+        return PersistenceAction.save(in: context, restore: { brew.topBrewRank = rank }) {
+            brew.topBrewRank = nil
+        }
     }
 }

@@ -10,6 +10,7 @@ import SwiftData
 
 struct CoffeeLibraryView: View {
     @Environment(\.modelContext) private var modelContext
+    @State private var showsSaveError = false
     @Query(filter: #Predicate<Coffee> { $0.archivedAt == nil },
            sort: \Coffee.createdAt, order: .reverse) private var coffees: [Coffee]
     @State private var showsAddCoffee = false
@@ -26,6 +27,7 @@ struct CoffeeLibraryView: View {
                     }
                     .buttonStyle(.plain)
                     .accessibilityHint("Opens coffee details")
+                    .accessibilityIdentifier("coffee.open.\(coffee.name)")
                     .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                     .listRowSeparator(.hidden)
                     .listRowBackground(Color.clear)
@@ -79,8 +81,10 @@ struct CoffeeLibraryView: View {
                 }
                 ToolbarItem(placement: .primaryAction) {
                     Button("Add coffee", systemImage: "plus") { showsAddCoffee = true }
+                        .accessibilityIdentifier("library.add")
                 }
             }
+            .persistenceErrorAlert(isPresented: $showsSaveError)
             .sheet(isPresented: $showsAddCoffee) { CoffeeFormView() }
             .confirmationDialog(
                 "Archive \(coffeeToArchive?.name ?? "")?",
@@ -100,7 +104,6 @@ struct CoffeeLibraryView: View {
     }
 
     private func archive(_ coffee: Coffee) {
-        coffee.archive()
-        try? modelContext.save()
+        showsSaveError = !coffee.archive(in: modelContext)
     }
 }

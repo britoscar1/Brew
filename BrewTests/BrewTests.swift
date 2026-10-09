@@ -506,6 +506,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func repeatCopiesEverySettingAndNoResult() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let original = source(in: context, coffee: coffee)
 
     let setup = try #require(BrewSetupViewModel(repeating: original))
@@ -522,6 +523,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func repeatLeavesTheOriginalBrewUntouched() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let original = source(in: context, coffee: coffee, strength: 1, goal: .stronger)
     let before = BrewFields(original)
     let ruleBefore = original.recommendation?.ruleID
@@ -537,6 +539,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func waterAdjustmentChangesOnlyTheWater() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let original = source(in: context, coffee: coffee, strength: 1, goal: .stronger)
 
     let adjustment = try #require(BrewAdjustment(brew: original))
@@ -552,6 +555,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func espressoAdjustmentChangesOnlyTheBeverageYield() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let original = source(in: context, coffee: coffee, method: .espresso,
                           water: nil, beverage: 36, strength: 1, goal: .stronger)
 
@@ -568,6 +572,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func grindAdjustmentEmptiesTheFieldAndBlocksSaving() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let original = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)
 
     let adjustment = try #require(BrewAdjustment(brew: original))
@@ -586,6 +591,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func noAdjustmentWhenThereIsNothingToChange() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
 
     let kept = source(in: context, coffee: coffee, goal: .keepAsIs)
     #expect(kept.recommendation?.direction == .maintain)
@@ -603,6 +609,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func anArchivedCoffeeCannotStartANewBrewFromItsHistory() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let original = source(in: context, coffee: coffee, strength: 1, goal: .stronger)
 
     #expect(BrewSetupViewModel(repeating: original) != nil)
@@ -618,6 +625,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func sharedInputRebuildsThePersistedRecommendation() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let brew = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)
     let evaluation = try #require(brew.tasteEvaluation)
 
@@ -628,6 +636,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func setupOffersTheLastSuggestionButNeverAppliesItOnItsOwn() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let last = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)
 
     let setup = BrewSetupViewModel(coffee: coffee, method: .v60)
@@ -652,6 +661,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func theSuggestionIsPerMethod() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     _ = source(in: context, coffee: coffee, method: .frenchPress, water: 500,
                acidity: 5, strength: 2, overall: 2)
 
@@ -664,6 +674,7 @@ private struct BrewFields: Equatable {
 /// engine just told them to keep these settings.
 @Test @MainActor func aBrewYouLikedOffersToReproduceItself() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     _ = source(in: context, coffee: coffee, acidity: 5, strength: 2, overall: 2)
     let liked = source(in: context, coffee: coffee, goal: .keepAsIs,
                        completedAt: t0.addingTimeInterval(3600))
@@ -690,6 +701,7 @@ private struct BrewFields: Equatable {
 /// Feedback the engine cannot read is still advice: repeat it once more unchanged.
 @Test @MainActor func anUnclearEvaluationOffersTheSameBrewAgain() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let unclear = source(in: context, coffee: coffee, acidity: 5, bitterness: 5)
 
     #expect(unclear.recommendation?.direction == .unclear)
@@ -709,6 +721,7 @@ private struct BrewFields: Equatable {
 /// Taste is not a requirement: a completed brew qualifies even unevaluated (TOP-01).
 @Test @MainActor func anUnevaluatedCompletedBrewCanJoinTheTop3() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let brew = Brew(coffee: coffee, method: .v60, coffeeGrams: 15,
                     grindDisplayValue: "22", status: .completed, completedAt: t0,
                     waterGrams: 250, temperatureCelsius: 94)
@@ -724,6 +737,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func anIncompleteBrewCannotJoinTheTop3() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let draft = Brew(coffee: coffee, method: .v60, coffeeGrams: 15,
                      grindDisplayValue: "22", waterGrams: 250, temperatureCelsius: 94)
     context.insert(draft)
@@ -737,6 +751,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func aBrewOfAnotherCoffeeCannotJoinThisTop3() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let other = Coffee(name: "Other", origin: "Test", roastLevel: .medium)
     context.insert(other)
     let brew = source(in: context, coffee: other)
@@ -750,6 +765,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func onlyThreePositionsExist() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let brew = source(in: context, coffee: coffee)
     let top = TopBrewsManager(coffee: coffee)
 
@@ -762,6 +778,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func aBrewHoldsASinglePosition() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let brew = source(in: context, coffee: coffee)
     let top = TopBrewsManager(coffee: coffee)
 
@@ -776,6 +793,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func aPositionBelongsToASingleBrew() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let first = source(in: context, coffee: coffee)
     let second = source(in: context, coffee: coffee, completedAt: t0.addingTimeInterval(3600))
     let top = TopBrewsManager(coffee: coffee)
@@ -792,6 +810,7 @@ private struct BrewFields: Equatable {
 /// Leaving the Top 3 is not deleting: the brew stays in the history (TOP-01).
 @Test @MainActor func leavingTheTop3KeepsTheBrewInTheHistory() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let brew = source(in: context, coffee: coffee)
     let top = TopBrewsManager(coffee: coffee)
     top.assign(brew, to: 2, in: context)
@@ -806,6 +825,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func theTop3IsOrderedByPositionAndNotByDate() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let oldest = source(in: context, coffee: coffee)
     let newest = source(in: context, coffee: coffee, completedAt: t0.addingTimeInterval(3600))
     let top = TopBrewsManager(coffee: coffee)
@@ -821,6 +841,7 @@ private struct BrewFields: Equatable {
 /// RPT-01 excludes the Top 3 position from what a repeat copies.
 @Test @MainActor func repeatingATopBrewDoesNotInheritItsPosition() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let best = source(in: context, coffee: coffee)
     TopBrewsManager(coffee: coffee).assign(best, to: 1, in: context)
 
@@ -836,6 +857,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func theNewestUnfinishedBrewComesUpFirst() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     _ = source(in: context, coffee: coffee)
     let older = try draft(in: context, coffee: coffee)
     let newer = try draft(in: context, coffee: coffee, method: .espresso)
@@ -851,6 +873,7 @@ private struct BrewFields: Equatable {
 /// A running brew counts as pending too, not only a draft that never started.
 @Test @MainActor func aRunningBrewIsPendingUntilItIsFinished() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let brew = try draft(in: context, coffee: coffee)
     let session = BrewSessionController(brew: brew, context: context)
 
@@ -864,6 +887,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func discardingRemovesOnlyTheUnfinishedBrew() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let kept = source(in: context, coffee: coffee)
     let unfinished = try draft(in: context, coffee: coffee)
 
@@ -878,6 +902,7 @@ private struct BrewFields: Equatable {
 /// Discarding is the only deletion in the MVP, so it must not reach history.
 @Test @MainActor func afinishedBrewCannotBeDiscarded() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let finished = source(in: context, coffee: coffee)
 
     InterruptedBrews.discard(finished, in: context)
@@ -888,6 +913,7 @@ private struct BrewFields: Equatable {
 
 @Test @MainActor func anUnfinishedBrewStaysOutOfTheHistory() throws {
     let (container, context, coffee) = try repeatContext()
+    defer { withExtendedLifetime(container) {} }
     let unfinished = try draft(in: context, coffee: coffee)
 
     #expect(coffee.completedBrews.isEmpty)

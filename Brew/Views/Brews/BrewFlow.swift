@@ -52,7 +52,7 @@ private struct BrewFlowDestinations: ViewModifier {
 
             case let .evaluate(brew):
                 // The brew is already done: there is nothing to go back to.
-                TasteEvaluationView(brew: brew) { path.append(.recommendation($0)) }
+                TasteEvaluationView(brew: brew, onSkip: onFinish) { path.append(.recommendation($0)) }
                     .navigationBarBackButtonHidden()
 
             case let .recommendation(brew):

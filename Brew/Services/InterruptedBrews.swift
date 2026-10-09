@@ -22,10 +22,14 @@ enum InterruptedBrews {
 
     /// Removes the brew for good. Discarding is the only deletion the MVP has,
     /// and it reaches nothing but an unfinished brew.
-    static func discard(_ brew: Brew, in context: ModelContext) {
-        guard brew.status != .completed else { return }
-
-        context.delete(brew)
-        try? context.save()
+    @discardableResult
+    static func discard(_ brew: Brew, in context: ModelContext) -> Bool {
+        guard brew.status != .completed else { return false }
+        let coffee = brew.coffee
+        let siblings = coffee?.brews
+        return PersistenceAction.save(in: context, restore: {
+            brew.coffee = coffee
+            if let coffee, let siblings { coffee.brews = siblings }
+        }) { context.delete(brew) }
     }
 }

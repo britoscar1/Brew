@@ -19,6 +19,7 @@ final class TasteEvaluationViewModel {
     var strengthValue = 3
     var overallValue = 3
     var improvementGoal: ImprovementGoal?
+    var notes = ""
 
     init(brew: Brew) {
         self.brew = brew
@@ -30,6 +31,7 @@ final class TasteEvaluationViewModel {
         strengthValue = evaluation.strengthValue
         overallValue = evaluation.overallValue
         improvementGoal = evaluation.improvementGoal
+        notes = evaluation.notes ?? ""
     }
 
     var isEditing: Bool {
@@ -37,12 +39,14 @@ final class TasteEvaluationViewModel {
     }
 
     func save(in context: ModelContext) -> Bool {
+        let trimmedNotes = notes.trimmingCharacters(in: .whitespacesAndNewlines)
         if let evaluation = brew.tasteEvaluation {
             evaluation.acidityValue = acidityValue
             evaluation.bitternessValue = bitternessValue
             evaluation.strengthValue = strengthValue
             evaluation.overallValue = overallValue
             evaluation.improvementGoalRawValue = improvementGoal?.rawValue
+            evaluation.notes = trimmedNotes.isEmpty ? nil : trimmedNotes
             evaluation.updatedAt = .now
         } else {
             let evaluation = TasteEvaluation(
@@ -53,6 +57,7 @@ final class TasteEvaluationViewModel {
                 overallValue: overallValue,
                 improvementGoal: improvementGoal
             )
+            evaluation.notes = trimmedNotes.isEmpty ? nil : trimmedNotes
             context.insert(evaluation)
         }
 

@@ -16,21 +16,27 @@ struct BrewModeView: View {
     @State private var session: BrewSessionController?
 
     var body: some View {
-        VStack(spacing: 28) {
-            header
+        ScrollView {
+            VStack(spacing: 28) {
+                header
 
-            timer
+                timer
 
-            details
+                guide
 
-            Spacer(minLength: 0)
+                details
 
-            controls
+            }
+            .padding(.horizontal, 16)
+            .padding(.vertical, 24)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
-        .padding(.horizontal, 16)
-        .padding(.vertical, 24)
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color("CoffeeCanvas"))
+        .safeAreaInset(edge: .bottom) {
+            controls
+                .padding(16)
+                .background(Color("CoffeeCanvas"))
+        }
         .navigationTitle("Brew")
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(brew.status == .inProgress)
@@ -41,6 +47,49 @@ struct BrewModeView: View {
             Button("OK", role: .cancel) { }
         } message: {
             Text("Your brew couldn't be saved. Please try again.")
+        }
+    }
+
+    @ViewBuilder
+    private var guide: some View {
+        if !brew.guidedSteps.isEmpty {
+            TimelineView(.periodic(from: .now, by: 0.25)) { timeline in
+                let elapsed = brew.elapsedSeconds(at: timeline.date)
+                let guide = BrewGuide(steps: brew.guidedSteps)
+                VStack(alignment: .leading, spacing: 12) {
+                    if let name = brew.recipeName { Text(name).font(.subheadline).foregroundStyle(.secondary) }
+                    if let step = guide.current(at: elapsed) {
+                        Text(step.title)
+                            .font(.title2.weight(.semibold))
+                            .accessibilityIdentifier("guide.currentStep")
+                        Text(step.instruction)
+                        if let water = step.cumulativeWaterGrams {
+                            Text("Total water: \(BrewSetting.grams(water))")
+                                .font(.headline)
+                        }
+                        if brew.method == .espresso, let yield = brew.beverageGrams {
+                            Text("Beverage target: \(BrewSetting.grams(yield))")
+                                .font(.headline)
+                        }
+                    }
+                    if let next = guide.next(at: elapsed) {
+                        Text("Next: \(next.title) at \(BrewSetting.duration(next.startsAtSeconds))")
+                            .font(.subheadline)
+                            .foregroundStyle(.secondary)
+                            .accessibilityIdentifier("guide.nextStep")
+                    }
+                    if brew.status == .draft {
+                        Text("Prepare your equipment before starting the timer.")
+                            .font(.footnote).foregroundStyle(.secondary)
+                    } else if let target = brew.targetDurationSeconds, elapsed >= target {
+                        Text("Target time reached. Finish when your coffee is ready.")
+                            .font(.subheadline.weight(.medium))
+                    }
+                }
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .padding(18)
+                .background(Color("CoffeeCrema").opacity(0.2), in: RoundedRectangle(cornerRadius: 20))
+            }
         }
     }
 
@@ -127,6 +176,7 @@ struct BrewModeView: View {
                 Text("Start").frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)
+            .accessibilityIdentifier("timer.start")
         case .inProgress:
             HStack(spacing: 12) {
                 if session?.isPaused == true {
@@ -134,11 +184,13 @@ struct BrewModeView: View {
                         Text("Resume").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.borderedProminent)
+                    .accessibilityIdentifier("timer.resume")
                 } else {
                     Button { session?.pause() } label: {
                         Text("Pause").frame(maxWidth: .infinity)
                     }
                     .buttonStyle(.bordered)
+                    .accessibilityIdentifier("timer.pause")
                 }
 
                 if session?.isPaused == true {
@@ -158,5 +210,6 @@ struct BrewModeView: View {
         } label: {
             Text("Finish").frame(maxWidth: .infinity)
         }
+        .accessibilityIdentifier("timer.finish")
     }
 }
