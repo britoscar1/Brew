@@ -11,6 +11,7 @@ import SwiftData
 
 struct BrewView: View {
     @Environment(\.modelContext) private var modelContext
+    @Environment(\.dynamicTypeSize) private var dynamicTypeSize
     @State private var path: [BrewStep] = []
     @State private var showsDiscardConfirmation = false
     @Query(filter: #Predicate<Coffee> { $0.archivedAt == nil }) private var coffees: [Coffee]
@@ -19,8 +20,9 @@ struct BrewView: View {
     private let spacing: CGFloat = 14
 
     private var methodRows: [[BrewMethod]] {
-        stride(from: 0, to: BrewMethod.allCases.count, by: 2).map {
-            Array(BrewMethod.allCases[$0 ..< min($0 + 2, BrewMethod.allCases.count)])
+        let perRow = dynamicTypeSize.isAccessibilitySize ? 1 : 2
+        return stride(from: 0, to: BrewMethod.allCases.count, by: perRow).map {
+            Array(BrewMethod.allCases[$0 ..< min($0 + perRow, BrewMethod.allCases.count)])
         }
     }
 
@@ -41,14 +43,17 @@ struct BrewView: View {
                         Text("Add a coffee in your library first.")
                     }
                 } else {
-                    VStack(spacing: spacing) {
-                        if let pending {
-                            unfinishedBrewCard(pending)
-                        }
+                    ScrollView {
+                        VStack(spacing: spacing) {
+                            if let pending {
+                                unfinishedBrewCard(pending)
+                            }
 
-                        methodGrid
+                            methodGrid
+                        }
+                        .padding(16)
                     }
-                    .padding(16)
+                    .scrollBounceBehavior(.basedOnSize)
                 }
             }
             .background(Color("CoffeeCanvas"))
@@ -74,7 +79,11 @@ struct BrewView: View {
     }
 
     private func unfinishedBrewCard(_ brew: Brew) -> some View {
-        HStack(spacing: 12) {
+        let layout = dynamicTypeSize.isAccessibilitySize
+            ? AnyLayout(VStackLayout(alignment: .leading, spacing: 12))
+            : AnyLayout(HStackLayout(spacing: 12))
+
+        return layout {
             VStack(alignment: .leading, spacing: 2) {
                 Text("Unfinished · \(brew.createdAt.formatted(.relative(presentation: .named)))")
                     .font(.caption)
@@ -83,17 +92,20 @@ struct BrewView: View {
                 Text(summary(of: brew))
                     .font(.subheadline.weight(.medium))
             }
+            .accessibilityElement(children: .combine)
 
             Spacer(minLength: 0)
 
-            Button("Discard") { showsDiscardConfirmation = true }
-                .buttonStyle(.plain)
-                .font(.subheadline)
-                .foregroundStyle(.secondary)
+            HStack(spacing: 12) {
+                Button("Discard") { showsDiscardConfirmation = true }
+                    .buttonStyle(.plain)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
 
-            Button("Continue") { path.append(.brewMode(brew)) }
-                .buttonStyle(.borderedProminent)
-                .controlSize(.small)
+                Button("Continue") { path.append(.brewMode(brew)) }
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.small)
+            }
         }
         .padding(14)
         .background(Color("CoffeeCrema").opacity(0.2), in: RoundedRectangle(cornerRadius: 20))
@@ -143,16 +155,19 @@ private struct MethodCard: View {
                 Text(method.title)
                     .font(.title3.weight(.semibold))
                     .multilineTextAlignment(.center)
+                    .fixedSize(horizontal: false, vertical: true)
 
                 Text(summary)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
             Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .frame(maxWidth: .infinity, minHeight: 180)
         .padding(.horizontal, 12)
+        .padding(.vertical, 14)
         .background(Color("CoffeeCrema").opacity(0.2), in: RoundedRectangle(cornerRadius: 24))
         .overlay {
             RoundedRectangle(cornerRadius: 24)

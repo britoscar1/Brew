@@ -30,6 +30,22 @@ struct BrewCoffeePickerView: View {
         .listStyle(.plain)
         .scrollContentBackground(.hidden)
         .background(Color("CoffeeCanvas"))
+        .overlay {
+            if coffees.isEmpty {
+                ContentUnavailableView {
+                    Label {
+                        Text("Nothing to brew yet")
+                    } icon: {
+                        Image("CoffeeBeansDuotone")
+                            .resizable().scaledToFit()
+                            .frame(width: 72, height: 72)
+                            .accessibilityHidden(true)
+                    }
+                } description: {
+                    Text("Add a coffee in your library first.")
+                }
+            }
+        }
         .navigationTitle("Choose a coffee")
         .navigationBarTitleDisplayMode(.inline)
     }
