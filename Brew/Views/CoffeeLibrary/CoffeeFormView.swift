@@ -54,7 +54,7 @@ struct CoffeeFormView: View {
             }
             .scrollContentBackground(.hidden)
             .background(Color("CoffeeCanvas"))
-            .navigationTitle(coffee == nil ? "Add Coffee" : "Edit Coffee")
+            .navigationTitle(coffee == nil ? "Add coffee" : "Edit coffee")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {

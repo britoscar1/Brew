@@ -51,7 +51,7 @@ struct TasteEvaluationView: View {
         }
         .scrollContentBackground(.hidden)
         .background(Color("CoffeeCanvas"))
-        .navigationTitle(evaluation.isEditing ? "Edit Evaluation" : "Evaluate")
+        .navigationTitle(evaluation.isEditing ? "Edit evaluation" : "Evaluate")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .confirmationAction) {
