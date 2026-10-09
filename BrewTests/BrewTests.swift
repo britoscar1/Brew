@@ -470,6 +470,14 @@ private func source(in context: ModelContext, coffee: Coffee, method: BrewMethod
     return brew
 }
 
+@MainActor
+private func draft(in context: ModelContext, coffee: Coffee,
+                   method: BrewMethod = .v60) throws -> Brew {
+    let setup = BrewSetupViewModel(coffee: coffee, method: method)
+    setup.grindDisplayValue = "22"
+    return try #require(setup.saveDraft(in: context))
+}
+
 private struct BrewFields: Equatable {
     var coffeeGrams: Double
     var waterGrams: Double?
@@ -821,5 +829,68 @@ private struct BrewFields: Equatable {
 
     #expect(repeated.topBrewRank == nil)
     #expect(best.topBrewRank == 1)
+    _ = container
+}
+
+// MARK: - Interrupted brews
+
+@Test @MainActor func theNewestUnfinishedBrewComesUpFirst() throws {
+    let (container, context, coffee) = try repeatContext()
+    _ = source(in: context, coffee: coffee)
+    let older = try draft(in: context, coffee: coffee)
+    let newer = try draft(in: context, coffee: coffee, method: .espresso)
+    newer.createdAt = older.createdAt.addingTimeInterval(60)
+
+    let pending = InterruptedBrews.pending(in: coffee.brews)
+
+    #expect(pending.count == 2)
+    #expect(pending.first === newer)
+    _ = container
+}
+
+/// A running brew counts as pending too, not only a draft that never started.
+@Test @MainActor func aRunningBrewIsPendingUntilItIsFinished() throws {
+    let (container, context, coffee) = try repeatContext()
+    let brew = try draft(in: context, coffee: coffee)
+    let session = BrewSessionController(brew: brew, context: context)
+
+    session.start()
+    #expect(InterruptedBrews.pending(in: coffee.brews).contains { $0 === brew })
+
+    session.finish()
+    #expect(InterruptedBrews.pending(in: coffee.brews).isEmpty)
+    _ = container
+}
+
+@Test @MainActor func discardingRemovesOnlyTheUnfinishedBrew() throws {
+    let (container, context, coffee) = try repeatContext()
+    let kept = source(in: context, coffee: coffee)
+    let unfinished = try draft(in: context, coffee: coffee)
+
+    InterruptedBrews.discard(unfinished, in: context)
+
+    #expect(InterruptedBrews.pending(in: coffee.brews).isEmpty)
+    #expect(coffee.completedBrews.count == 1)
+    #expect(coffee.completedBrews.first === kept)
+    _ = container
+}
+
+/// Discarding is the only deletion in the MVP, so it must not reach history.
+@Test @MainActor func afinishedBrewCannotBeDiscarded() throws {
+    let (container, context, coffee) = try repeatContext()
+    let finished = source(in: context, coffee: coffee)
+
+    InterruptedBrews.discard(finished, in: context)
+
+    #expect(coffee.completedBrews.contains { $0 === finished })
+    _ = container
+}
+
+@Test @MainActor func anUnfinishedBrewStaysOutOfTheHistory() throws {
+    let (container, context, coffee) = try repeatContext()
+    let unfinished = try draft(in: context, coffee: coffee)
+
+    #expect(coffee.completedBrews.isEmpty)
+    #expect(!TopBrewsManager(coffee: coffee).canHoldAPosition(unfinished))
     _ = container
 }
