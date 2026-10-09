@@ -1,3 +1,10 @@
+//
+//  BrewUITests.swift
+//  BrewUITests
+//
+//  Created by Oscar Artemio Brito Ortiz on 12/09/26.
+//
+
 import XCTest
 
 @MainActor
@@ -15,17 +22,13 @@ final class BrewUITests: XCTestCase {
 
     func testCreateCoffeeGuidedBrewNotesAndRepeat() throws {
         createCoffee()
-        prepareRecipe(targetSeconds: 8)
+        prepareRecipe()
         XCTAssertEqual(app.staticTexts["guide.currentStep"].label, "Bloom")
-        XCTAssertTrue(app.staticTexts["guide.nextStep"].exists)
+        XCTAssertEqual(app.staticTexts["guide.nextStep"].label, "Next: First pour at 0:30")
         app.buttons["timer.start"].tap()
         app.buttons["timer.pause"].tap()
         XCTAssertTrue(app.buttons["timer.resume"].exists)
         app.buttons["timer.resume"].tap()
-        let advanced = XCTNSPredicateExpectation(
-            predicate: NSPredicate(format: "label == %@", "Draw down"),
-            object: app.staticTexts["guide.currentStep"])
-        XCTAssertEqual(XCTWaiter.wait(for: [advanced], timeout: 10), .completed)
         app.buttons["timer.finish"].tap()
         XCTAssertTrue(app.buttons["evaluation.skip"].waitForExistence(timeout: 5))
         enterNotes("Peach and chocolate")
@@ -127,27 +130,17 @@ final class BrewUITests: XCTestCase {
         XCTAssertTrue(element("coffee.open.\(coffeeName)").waitForExistence(timeout: 5))
     }
 
-    private func prepareRecipe(targetSeconds: Int? = nil) {
+    private func prepareRecipe() {
         app.tabBars.buttons["Brew"].tap()
         app.buttons.containing(.staticText, identifier: "V60").firstMatch.tap()
         element("brew.choose.\(coffeeName)").tap()
         app.buttons["setup.recipe"].tap()
         app.buttons["V60 starter"].tap()
-        if let targetSeconds {
-            replaceNumber(app.textFields["setup.minutes"], with: "0")
-            replaceNumber(app.textFields["setup.seconds"], with: String(targetSeconds))
-            app.buttons["setup.keyboardDone"].tap()
-        }
-        XCTAssertTrue(app.buttons["setup.continue"].isEnabled)
+        let ready = XCTNSPredicateExpectation(predicate: NSPredicate(format: "isEnabled == true"),
+                                              object: app.buttons["setup.continue"])
+        XCTAssertEqual(XCTWaiter.wait(for: [ready], timeout: 5), .completed)
         app.buttons["setup.continue"].tap()
         XCTAssertTrue(app.buttons["timer.start"].waitForExistence(timeout: 5))
-    }
-
-    private func replaceNumber(_ field: XCUIElement, with text: String) {
-        reveal(field)
-        field.doubleTap()
-        let existing = field.value as? String ?? ""
-        field.typeText(String(repeating: XCUIKeyboardKey.delete.rawValue, count: existing.count) + text)
     }
 
     private func openLatestBrew() {

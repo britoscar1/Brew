@@ -1,3 +1,10 @@
+//
+//  BrewRecipe.swift
+//  Brew
+//
+//  Created by Oscar Artemio Brito Ortiz on 09/10/26.
+//
+
 import Foundation
 
 /// Stored by value in each brew, so future recipe edits cannot change its history.

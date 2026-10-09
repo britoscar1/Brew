@@ -1,3 +1,10 @@
+//
+//  BrewApp.swift
+//  Brew
+//
+//  Created by Oscar Artemio Brito Ortiz on 12/09/26.
+//
+
 import SwiftUI
 import SwiftData
 
