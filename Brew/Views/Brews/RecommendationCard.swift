@@ -90,8 +90,8 @@ struct RecommendationCard: View {
 
     private var currentValue: String {
         switch recommendation.variable {
-        case .water: brew.waterGrams.map(BrewSetting.grams) ?? "—"
-        case .beverageYield: brew.beverageGrams.map(BrewSetting.grams) ?? "—"
+        case .water: brew.waterGrams.map { BrewSetting.grams($0) } ?? "—"
+        case .beverageYield: brew.beverageGrams.map { BrewSetting.grams($0) } ?? "—"
         case .grind: brew.grindDisplayValue
         default: "—"
         }

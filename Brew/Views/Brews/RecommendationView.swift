@@ -74,6 +74,7 @@ struct RecommendationView: View {
 
             ToolbarItem(placement: .confirmationAction) {
                 Button("Done", action: onFinish)
+                    .accessibilityIdentifier("recommendation.done")
             }
         }
     }

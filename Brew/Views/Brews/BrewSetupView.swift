@@ -13,6 +13,7 @@ struct BrewSetupView: View {
     @State private var setup: BrewSetupViewModel
     @State private var showsSaveError = false
     @FocusState private var grindIsFocused: Bool
+    @FocusState private var numericField: String?
 
     private let onSaved: (Brew) -> Void
 
@@ -23,6 +24,46 @@ struct BrewSetupView: View {
 
     var body: some View {
         Form {
+            Section {
+                Picker("Recipe", selection: Binding(
+                    get: { setup.selectedRecipeID ?? (setup.selectedRecipeName != nil ? "copied" : nil) },
+                    set: { if $0 != "copied" { setup.selectRecipe($0) } }
+                )) {
+                    Text("Manual setup").tag(nil as String?)
+                    Text(setup.starterRecipe.name).tag(Optional(setup.starterRecipe.id))
+                    if setup.selectedRecipeID == nil, setup.selectedRecipeName != nil {
+                        Text("Copied recipe").tag(Optional("copied"))
+                    }
+                }
+                .accessibilityIdentifier("setup.recipe")
+
+                if setup.selectedRecipeID == nil, let name = setup.selectedRecipeName {
+                    Text("Copied from \(name)").font(.subheadline).foregroundStyle(.secondary)
+                }
+
+                if !setup.guidedSteps.isEmpty {
+                    DisclosureGroup("Recipe steps") {
+                        ForEach(setup.guidedSteps) { step in
+                            VStack(alignment: .leading, spacing: 4) {
+                                Text("\(BrewSetting.duration(step.startsAtSeconds)) · \(step.title)")
+                                    .font(.subheadline.weight(.medium))
+                                Text(step.instruction)
+                                    .font(.footnote)
+                                    .foregroundStyle(.secondary)
+                                if let water = step.cumulativeWaterGrams {
+                                    Text("Total water: \(BrewSetting.grams(water))")
+                                        .font(.footnote)
+                                }
+                            }
+                        }
+                    }
+                }
+            } header: {
+                Text("Recipe")
+            } footer: {
+                Text("Starter recipes are a starting point. Review the amounts and grind for your equipment. Step targets follow your water and target time.")
+            }
+
             if let suggestion = setup.suggestion, !setup.hasAppliedSuggestion {
                 Section {
                     suggestionRow(suggestion)
@@ -45,21 +86,21 @@ struct BrewSetupView: View {
 
             Section {
                 LabeledContent("Coffee") {
-                    amountField("18", value: $setup.coffeeGrams, unit: "g")
+                    amountField("18", id: "setup.coffee", value: $setup.coffeeGrams, unit: "g")
                 }
 
                 if setup.usesBeverageYield {
                     LabeledContent("Beverage") {
-                        amountField("36", value: $setup.beverageGrams, unit: "g")
+                        amountField("36", id: "setup.beverage", value: $setup.beverageGrams, unit: "g")
                     }
                 } else {
                     LabeledContent("Water") {
-                        amountField("300", value: $setup.waterGrams, unit: "g")
+                        amountField("300", id: "setup.water", value: $setup.waterGrams, unit: "g")
                     }
                 }
 
                 LabeledContent("Temperature") {
-                    amountField("93", value: $setup.temperatureCelsius, unit: "°C")
+                    amountField("93", id: "setup.temperature", value: $setup.temperatureCelsius, unit: "°C")
                 }
 
                 if let ratio = setup.ratio {
@@ -68,6 +109,7 @@ struct BrewSetupView: View {
             } header: {
                 Text("Dose")
             } footer: {
+                Text("Use positive amounts: coffee up to 500 g, water or beverage up to 10,000 g, and temperature from 1–100 °C. Espresso temperature is optional.")
                 if let adjustment = setup.adjustment, adjustment.variable != .grind {
                     adjustmentHint(adjustment)
                 }
@@ -78,6 +120,7 @@ struct BrewSetupView: View {
                     .textInputAutocapitalization(.never)
                     .autocorrectionDisabled()
                     .focused($grindIsFocused)
+                    .accessibilityIdentifier("setup.grind")
             } header: {
                 HStack(alignment: .firstTextBaseline) {
                     Text("Grind setting")
@@ -92,16 +135,20 @@ struct BrewSetupView: View {
                 }
             }
 
-            Section("Time") {
+            Section {
                 LabeledContent("Target time") {
                     HStack(spacing: 4) {
                         TextField("2", value: $setup.durationMinutes, format: .number)
+                            .accessibilityIdentifier("setup.minutes")
+                            .focused($numericField, equals: "setup.minutes")
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                             .frame(maxWidth: 44)
                         Text("min")
                             .foregroundStyle(.secondary)
                         TextField("45", value: $setup.durationSeconds, format: .number)
+                            .accessibilityIdentifier("setup.seconds")
+                            .focused($numericField, equals: "setup.seconds")
                             .keyboardType(.numberPad)
                             .multilineTextAlignment(.trailing)
                             .frame(maxWidth: 44)
@@ -109,6 +156,10 @@ struct BrewSetupView: View {
                             .foregroundStyle(.secondary)
                     }
                 }
+            } header: {
+                Text("Time")
+            } footer: {
+                Text("Use 0–59 seconds and a total target up to 120 minutes. Leave target time empty if you don't need it.")
             }
         }
         .scrollContentBackground(.hidden)
@@ -116,6 +167,14 @@ struct BrewSetupView: View {
         .navigationTitle(setup.coffee.name)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
+            ToolbarItemGroup(placement: .keyboard) {
+                Spacer()
+                Button("Done") {
+                    grindIsFocused = false
+                    numericField = nil
+                }
+                .accessibilityIdentifier("setup.keyboardDone")
+            }
             ToolbarItem(placement: .confirmationAction) {
                 Button("Continue") {
                     if let brew = setup.saveDraft(in: modelContext) {
@@ -125,6 +184,7 @@ struct BrewSetupView: View {
                     }
                 }
                 .disabled(!setup.canSave)
+                .accessibilityIdentifier("setup.continue")
             }
         }
         .alert("Couldn't save brew", isPresented: $showsSaveError) {
@@ -173,9 +233,11 @@ struct BrewSetupView: View {
             .textCase(nil)
     }
 
-    private func amountField(_ placeholder: String, value: Binding<Double?>, unit: LocalizedStringKey) -> some View {
+    private func amountField(_ placeholder: String, id: String, value: Binding<Double?>, unit: LocalizedStringKey) -> some View {
         HStack {
             TextField(placeholder, value: value, format: .number)
+                .accessibilityIdentifier(id)
+                .focused($numericField, equals: id)
                 .keyboardType(.decimalPad)
                 .multilineTextAlignment(.trailing)
             Text(unit)

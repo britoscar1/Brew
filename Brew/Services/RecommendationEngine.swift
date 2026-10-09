@@ -243,8 +243,12 @@ struct RecommendationEngine {
     }
 
     private func adjusted(_ value: Double, direction: RecommendationDirection, step: Double) -> Double? {
+        guard value.isFinite, value > 0 else { return nil }
         let factor = direction == .decrease ? 0.95 : 1.05
-        let target = (value * factor / step).rounded() * step
-        return target > 0 ? target : nil
+        var target = (value * factor / step).rounded() * step
+        // Even small doses must move in the direction named by the advice.
+        if direction == .decrease, target >= value { target -= step }
+        if direction == .increase, target <= value { target += step }
+        return target.isFinite && target > 0 ? target : nil
     }
 }

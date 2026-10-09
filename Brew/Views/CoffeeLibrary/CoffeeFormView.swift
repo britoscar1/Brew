@@ -26,8 +26,10 @@ struct CoffeeFormView: View {
             Form {
                 Section {
                     TextField("Name", text: $form.name)
+                        .accessibilityIdentifier("coffee.name")
                         .autocorrectionDisabled()
                     TextField("Origin", text: $form.origin)
+                        .accessibilityIdentifier("coffee.origin")
                         .autocorrectionDisabled()
                     TextField("Roaster (optional)", text: $form.roaster)
                         .autocorrectionDisabled()
@@ -41,6 +43,7 @@ struct CoffeeFormView: View {
                             Text(level.title).tag(Optional(level))
                         }
                     }
+                    .accessibilityIdentifier("coffee.roast")
                     TextField("Process (optional)", text: $form.process)
                     Toggle("Include roast date", isOn: $form.includesRoastDate)
                     if form.includesRoastDate {
@@ -71,6 +74,7 @@ struct CoffeeFormView: View {
                     }
                     .keyboardShortcut(.defaultAction)
                     .disabled(!form.canSave)
+                    .accessibilityIdentifier("coffee.save")
                 }
             }
             .alert("Couldn't save coffee", isPresented: $showsSaveError) {

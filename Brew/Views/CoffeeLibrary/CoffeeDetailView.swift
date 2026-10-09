@@ -14,6 +14,7 @@ struct CoffeeDetailView: View {
     let coffee: Coffee
 
     @Environment(\.modelContext) private var modelContext
+    @State private var showsSaveError = false
     @State private var showsEditCoffee = false
     @State private var showsArchiveConfirmation = false
 
@@ -69,6 +70,7 @@ struct CoffeeDetailView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityHint("Opens brew details")
+                        .accessibilityIdentifier("top.brew.\(brew.persistentModelID)")
                     }
                 }
                 .listRowBackground(cardBackground)
@@ -87,6 +89,7 @@ struct CoffeeDetailView: View {
                         }
                         .buttonStyle(.plain)
                         .accessibilityHint("Opens brew details")
+                        .accessibilityIdentifier("history.brew.\(brew.persistentModelID)")
                     }
 
                     if brews.count > 3 {
@@ -116,6 +119,7 @@ struct CoffeeDetailView: View {
         .contentMargins(.top, 12, for: .scrollContent)
         .scrollContentBackground(.hidden)
         .background(Color("CoffeeCanvas"))
+        .persistenceErrorAlert(isPresented: $showsSaveError)
         .navigationTitle(coffee.name)
         .toolbar {
             ToolbarItem(placement: .primaryAction) {
@@ -124,10 +128,10 @@ struct CoffeeDetailView: View {
                         Button("Archive", systemImage: "archivebox") {
                             showsArchiveConfirmation = true
                         }
+                        .accessibilityIdentifier("coffee.archive")
                     } else {
                         Button("Restore", systemImage: "arrow.uturn.backward") {
-                            coffee.restore()
-                            try? modelContext.save()
+                            showsSaveError = !coffee.restore(in: modelContext)
                         }
                     }
                 }
@@ -147,9 +151,9 @@ struct CoffeeDetailView: View {
             titleVisibility: .visible
         ) {
             Button("Archive") {
-                coffee.archive()
-                try? modelContext.save()
+                showsSaveError = !coffee.archive(in: modelContext)
             }
+            .accessibilityIdentifier("coffee.confirmArchive")
             Button("Cancel", role: .cancel) { }
         } message: {
             Text("You can restore it later from Archived coffees.")

@@ -19,6 +19,7 @@ struct BrewDetailView: View {
     let brew: Brew
 
     @Environment(\.modelContext) private var modelContext
+    @State private var showsSaveError = false
     @State private var brewToEvaluate: Brew?
     @State private var positionToReplace: Int?
     @State private var repeatRequest: RepeatRequest?
@@ -36,6 +37,24 @@ struct BrewDetailView: View {
                 if !timing.isEmpty {
                     section(title: "Timing") {
                         BrewSettingsCard(settings: timing)
+                    }
+                }
+
+                if !brew.guidedSteps.isEmpty {
+                    section(title: "Recipe steps") {
+                        VStack(alignment: .leading, spacing: 12) {
+                            if let name = brew.recipeName { Text(name).font(.headline) }
+                            ForEach(brew.guidedSteps) { step in
+                                VStack(alignment: .leading, spacing: 4) {
+                                    Text("\(BrewSetting.duration(step.startsAtSeconds)) · \(step.title)")
+                                        .font(.subheadline.weight(.medium))
+                                    Text(step.instruction).font(.footnote)
+                                    if let water = step.cumulativeWaterGrams {
+                                        Text("Total water: \(BrewSetting.grams(water))").font(.footnote)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
 
@@ -73,6 +92,7 @@ struct BrewDetailView: View {
                     }
                     .buttonStyle(.bordered)
                     .controlSize(.large)
+                    .accessibilityIdentifier("brew.repeat")
                 }
             }
             .padding(.horizontal, 16)
@@ -98,7 +118,7 @@ struct BrewDetailView: View {
         ) {
             Button("Replace") {
                 if let top, let position = positionToReplace {
-                    top.assign(brew, to: position, in: modelContext)
+                    showsSaveError = !top.assign(brew, to: position, in: modelContext)
                 }
                 positionToReplace = nil
             }
@@ -106,6 +126,7 @@ struct BrewDetailView: View {
         } message: {
             Text("The brew there leaves the Top 3 and stays in your history.")
         }
+        .persistenceErrorAlert(isPresented: $showsSaveError)
         .sheet(item: $brewToEvaluate) { target in
             NavigationStack {
                 TasteEvaluationView(brew: target) { _ in brewToEvaluate = nil }
@@ -166,7 +187,7 @@ struct BrewDetailView: View {
             if brew.topBrewRank != nil {
                 Section {
                     Button("Remove from Top 3", systemImage: "star.slash", role: .destructive) {
-                        top.remove(brew, in: modelContext)
+                        showsSaveError = !top.remove(brew, in: modelContext)
                     }
                 }
             }
@@ -179,7 +200,7 @@ struct BrewDetailView: View {
         guard brew.topBrewRank != position else { return }
 
         if top.brew(at: position) == nil {
-            top.assign(brew, to: position, in: modelContext)
+            showsSaveError = !top.assign(brew, to: position, in: modelContext)
         } else {
             positionToReplace = position
         }
@@ -251,6 +272,13 @@ struct BrewDetailView: View {
                     TasteScale(dimension: dimension, value: dimension.value(in: evaluation))
                 }
 
+                if let notes = evaluation.notes {
+                    Divider().padding(.vertical, 8)
+                    Text(notes)
+                        .font(.subheadline)
+                        .accessibilityIdentifier("brew.tasteNotes")
+                }
+
                 if let goal = evaluation.improvementGoal {
                     Divider()
                         .padding(.vertical, 8)
@@ -276,6 +304,7 @@ struct BrewDetailView: View {
                     Text("Evaluate").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
+                .accessibilityIdentifier("brew.evaluate")
             }
             .padding(18)
             .frame(maxWidth: .infinity)

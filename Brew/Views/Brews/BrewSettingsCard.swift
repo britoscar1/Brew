@@ -17,6 +17,7 @@ struct BrewSetting {
     }
 
     static func duration(_ seconds: Double) -> String {
+        guard seconds.isFinite, seconds >= 0, seconds < Double(Int.max) else { return "—" }
         let total = Int(seconds)
         return String(format: "%d:%02d", total / 60, total % 60)
     }

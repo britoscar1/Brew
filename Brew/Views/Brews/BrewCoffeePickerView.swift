@@ -22,6 +22,7 @@ struct BrewCoffeePickerView: View {
                 }
                 .buttonStyle(.plain)
                 .accessibilityHint("Chooses this coffee to brew")
+                .accessibilityIdentifier("brew.choose.\(coffee.name)")
                 .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
                 .listRowSeparator(.hidden)
                 .listRowBackground(Color.clear)

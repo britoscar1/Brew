@@ -26,6 +26,50 @@ final class BrewSetupViewModel {
     /// adjustment: keeping the settings you liked changes nothing to flag.
     private(set) var hasAppliedSuggestion = false
 
+    private(set) var selectedRecipeID: String?
+    private var recipeName: String?
+    private var sourceSteps: [GuidedBrewStep] = []
+    private var sourceWaterGrams: Double?
+    private var sourceDurationSeconds: Double?
+
+    var starterRecipe: BrewRecipe { BrewRecipe.starter(for: method) }
+
+    func selectRecipe(_ id: String?) {
+        selectedRecipeID = id
+        hasAppliedSuggestion = false
+        adjustment = nil
+        guard id != nil else {
+            recipeName = nil
+            sourceSteps = []
+            return
+        }
+        let recipe = starterRecipe
+        recipeName = recipe.name
+        coffeeGrams = recipe.coffeeGrams
+        waterGrams = recipe.waterGrams
+        beverageGrams = recipe.beverageGrams
+        temperatureCelsius = recipe.temperatureCelsius
+        grindDisplayValue = recipe.grind
+        durationMinutes = Int(recipe.durationSeconds) / 60
+        durationSeconds = Int(recipe.durationSeconds) % 60
+        sourceSteps = recipe.steps
+        sourceWaterGrams = recipe.waterGrams
+        sourceDurationSeconds = recipe.durationSeconds
+    }
+
+    /// Targets follow the reviewed setup, then are frozen when the draft is saved.
+    var guidedSteps: [GuidedBrewStep] {
+        let timeScale = sourceDurationSeconds.flatMap { original in
+            original > 0 ? targetDurationSeconds.map { $0 / original } : nil
+        } ?? 1
+        let waterScale = sourceWaterGrams.flatMap { original in
+            original > 0 ? waterGrams.map { $0 / original } : nil
+        } ?? 1
+        return sourceSteps.map { $0.scaled(time: timeScale, water: waterScale) }
+    }
+
+    var selectedRecipeName: String? { recipeName }
+
     var coffeeGrams: Double?
     var waterGrams: Double?
     var beverageGrams: Double?
@@ -72,6 +116,11 @@ final class BrewSetupViewModel {
     }
 
     private func seed(from source: Brew, adjustment: BrewAdjustment?) {
+        selectedRecipeID = nil
+        recipeName = source.recipeName
+        sourceSteps = source.guidedSteps
+        sourceWaterGrams = source.waterGrams
+        sourceDurationSeconds = source.targetDurationSeconds
         coffeeGrams = source.coffeeGrams
         waterGrams = source.waterGrams
         beverageGrams = source.beverageGrams
@@ -80,7 +129,7 @@ final class BrewSetupViewModel {
         durationMinutes = nil
         durationSeconds = nil
 
-        if let target = source.targetDurationSeconds, target > 0 {
+        if let target = source.targetDurationSeconds, target.isFinite, target > 0, target <= 7200 {
             let total = Int(target)
             durationMinutes = total / 60
             durationSeconds = total % 60
@@ -107,17 +156,33 @@ final class BrewSetupViewModel {
     }
 
     var canSave: Bool {
-        guard let coffeeGrams, coffeeGrams > 0,
-              !grindDisplayValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return false
-        }
+        guard coffee.archivedAt == nil,
+              validAmount(coffeeGrams, maximum: 500),
+              !grindDisplayValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
+              validTargetTime else { return false }
+
+        if let temperatureCelsius,
+           !temperatureCelsius.isFinite || !(1...100).contains(temperatureCelsius) { return false }
 
         switch method {
         case .v60, .aeroPress, .frenchPress:
-            return (waterGrams ?? 0) > 0 && (temperatureCelsius ?? 0) > 0
+            return validAmount(waterGrams, maximum: 10_000) && temperatureCelsius != nil
         case .espresso:
-            return (beverageGrams ?? 0) > 0
+            return validAmount(beverageGrams, maximum: 10_000)
         }
+    }
+
+    private func validAmount(_ value: Double?, maximum: Double) -> Bool {
+        guard let value else { return false }
+        return value.isFinite && value > 0 && value <= maximum
+    }
+
+    private var validTargetTime: Bool {
+        guard durationMinutes != nil || durationSeconds != nil else { return true }
+        let minutes = durationMinutes ?? 0
+        let seconds = durationSeconds ?? 0
+        return (0...120).contains(minutes) && (0...59).contains(seconds)
+            && (minutes > 0 || seconds > 0) && (minutes < 120 || seconds == 0)
     }
 
     func saveDraft(in context: ModelContext) -> Brew? {
@@ -133,6 +198,12 @@ final class BrewSetupViewModel {
             temperatureCelsius: temperatureCelsius,
             targetDurationSeconds: targetDurationSeconds
         )
+        brew.recipeName = recipeName
+        do {
+            brew.guidedStepsData = try JSONEncoder().encode(guidedSteps)
+        } catch {
+            return nil
+        }
         context.insert(brew)
 
         do {
@@ -145,7 +216,7 @@ final class BrewSetupViewModel {
     }
 
     private var targetDurationSeconds: Double? {
-        guard durationMinutes != nil || durationSeconds != nil else { return nil }
+        guard validTargetTime, durationMinutes != nil || durationSeconds != nil else { return nil }
         return Double((durationMinutes ?? 0) * 60 + (durationSeconds ?? 0))
     }
 }
