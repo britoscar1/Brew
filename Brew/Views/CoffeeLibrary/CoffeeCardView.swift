@@ -12,7 +12,7 @@ struct CoffeeCardView: View {
 
     var body: some View {
         HStack(spacing: 16) {
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 4) {
                 Text(coffee.name)
                     .font(.headline)
 
@@ -41,10 +41,10 @@ struct CoffeeCardView: View {
             Image("CoffeeBeansDuotone")
                 .resizable()
                 .scaledToFit()
-                .frame(width: 48, height: 48)
+                .frame(width: 44, height: 44)
                 .accessibilityHidden(true)
         }
-        .padding(16)
+        .padding(14)
         .background(Color("CoffeeCrema").opacity(0.2), in: RoundedRectangle(cornerRadius: 20))
         .overlay {
             RoundedRectangle(cornerRadius: 20)
