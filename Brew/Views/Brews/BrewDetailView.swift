@@ -40,24 +40,6 @@ struct BrewDetailView: View {
                     }
                 }
 
-                if !brew.guidedSteps.isEmpty {
-                    section(title: "Recipe steps") {
-                        VStack(alignment: .leading, spacing: 12) {
-                            if let name = brew.recipeName { Text(name).font(.headline) }
-                            ForEach(brew.guidedSteps) { step in
-                                VStack(alignment: .leading, spacing: 4) {
-                                    Text("\(BrewSetting.duration(step.startsAtSeconds)) · \(step.title)")
-                                        .font(.subheadline.weight(.medium))
-                                    Text(step.instruction).font(.footnote)
-                                    if let water = step.cumulativeWaterGrams {
-                                        Text("Total water: \(BrewSetting.grams(water))").font(.footnote)
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-
                 tasteSection
 
                 if let recommendation = brew.recommendation {

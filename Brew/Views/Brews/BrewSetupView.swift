@@ -25,6 +25,20 @@ struct BrewSetupView: View {
     var body: some View {
         Form {
             Section {
+                HStack(spacing: 12) {
+                    Image(setup.method.iconName)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 40, height: 40)
+                        .accessibilityHidden(true)
+
+                    Text(setup.method.title)
+                        .font(.headline)
+                }
+                .padding(.vertical, 4)
+            }
+
+            Section {
                 Picker("Recipe", selection: Binding(
                     get: { setup.selectedRecipeID ?? (setup.selectedRecipeName != nil ? "copied" : nil) },
                     set: { if $0 != "copied" { setup.selectRecipe($0) } }
@@ -71,20 +85,6 @@ struct BrewSetupView: View {
             }
 
             Section {
-                HStack(spacing: 12) {
-                    Image(setup.method.iconName)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 40)
-                        .accessibilityHidden(true)
-
-                    Text(setup.method.title)
-                        .font(.headline)
-                }
-                .padding(.vertical, 4)
-            }
-
-            Section {
                 LabeledContent("Coffee") {
                     amountField("18", id: "setup.coffee", value: $setup.coffeeGrams, unit: "g")
                 }
@@ -109,7 +109,6 @@ struct BrewSetupView: View {
             } header: {
                 Text("Dose")
             } footer: {
-                Text("Use positive amounts: coffee up to 500 g, water or beverage up to 10,000 g, and temperature from 1–100 °C. Espresso temperature is optional.")
                 if let adjustment = setup.adjustment, adjustment.variable != .grind {
                     adjustmentHint(adjustment)
                 }

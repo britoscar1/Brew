@@ -65,11 +65,11 @@ struct BrewModeView: View {
                         Text(step.instruction)
                         if let water = step.cumulativeWaterGrams {
                             Text("Total water: \(BrewSetting.grams(water))")
-                                .font(.headline)
+                                .font(.subheadline.weight(.semibold))
                         }
                         if brew.method == .espresso, let yield = brew.beverageGrams {
                             Text("Beverage target: \(BrewSetting.grams(yield))")
-                                .font(.headline)
+                                .font(.subheadline.weight(.semibold))
                         }
                     }
                     if let next = guide.next(at: elapsed) {
@@ -78,10 +78,7 @@ struct BrewModeView: View {
                             .foregroundStyle(.secondary)
                             .accessibilityIdentifier("guide.nextStep")
                     }
-                    if brew.status == .draft {
-                        Text("Prepare your equipment before starting the timer.")
-                            .font(.footnote).foregroundStyle(.secondary)
-                    } else if let target = brew.targetDurationSeconds, elapsed >= target {
+                    if brew.status != .draft, let target = brew.targetDurationSeconds, elapsed >= target {
                         Text("Target time reached. Finish when your coffee is ready.")
                             .font(.subheadline.weight(.medium))
                     }
