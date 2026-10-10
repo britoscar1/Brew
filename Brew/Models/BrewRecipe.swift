@@ -7,7 +7,6 @@
 
 import Foundation
 
-/// Stored by value in each brew, so future recipe edits cannot change its history.
 struct GuidedBrewStep: Codable, Equatable, Identifiable {
     let id: Int
     let title: String

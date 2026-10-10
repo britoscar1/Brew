@@ -127,8 +127,6 @@ struct BrewSetupView: View {
 
                     Spacer(minLength: 8)
 
-                    // Above the field, not below: the keyboard covers a footer, and
-                    // this is the one thing worth reading while typing.
                     if let adjustment = setup.adjustment, adjustment.variable == .grind {
                         adjustmentHint(adjustment)
                     }
@@ -198,8 +196,6 @@ struct BrewSetupView: View {
         Button {
             setup.applySuggestion()
 
-            // A grind suggestion leaves the field empty on purpose, so point at it:
-            // otherwise applying one looks like nothing happened.
             if setup.adjustment?.variable == .grind {
                 grindIsFocused = true
             }

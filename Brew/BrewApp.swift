@@ -19,7 +19,6 @@ final class BrewStore {
         let schema = Schema([Coffee.self, Brew.self, TasteEvaluation.self, BrewRecommendation.self])
         let configuration: ModelConfiguration
         #if DEBUG
-        // UI tests use a separate on-disk store, retained across app relaunches.
         if let testID = ProcessInfo.processInfo.environment["BREW_UI_TEST_STORE"],
            let id = UUID(uuidString: testID) {
             let url = URL.applicationSupportDirectory.appendingPathComponent("ui-test-\(id.uuidString).store")

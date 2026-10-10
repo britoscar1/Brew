@@ -15,15 +15,10 @@ final class BrewSetupViewModel {
     let coffee: Coffee
     let method: BrewMethod
 
-    /// The adjustment currently seeded into these values, if any.
     private(set) var adjustment: BrewAdjustment?
 
-    /// The most recent brew of this coffee and method whose recommendation can
-    /// still be acted on. Offered at the top of Brew Setup, never applied on its own.
     let suggestion: BrewSuggestion?
 
-    /// True once the person took the suggestion. Not the same as having an
-    /// adjustment: keeping the settings you liked changes nothing to flag.
     private(set) var hasAppliedSuggestion = false
 
     private(set) var selectedRecipeID: String?
@@ -57,7 +52,6 @@ final class BrewSetupViewModel {
         sourceDurationSeconds = recipe.durationSeconds
     }
 
-    /// Targets follow the reviewed setup, then are frozen when the draft is saved.
     var guidedSteps: [GuidedBrewStep] {
         let timeScale = sourceDurationSeconds.flatMap { original in
             original > 0 ? targetDurationSeconds.map { $0 / original } : nil
@@ -91,8 +85,6 @@ final class BrewSetupViewModel {
         temperatureCelsius = defaults.temperatureCelsius
     }
 
-    /// Replaces the method defaults with the suggested brew's values. Only the
-    /// person tapping Apply calls this; entering Brew Setup never does.
     func applySuggestion() {
         guard let suggestion else { return }
 
@@ -101,8 +93,6 @@ final class BrewSetupViewModel {
         seed(from: suggestion.source, adjustment: suggestion.adjustment)
     }
 
-    /// Fails for an archived coffee: it is out of the active library, so it cannot
-    /// start a new brew from its history either (COF-04).
     init?(repeating source: Brew, adjustment: BrewAdjustment? = nil) {
         guard let coffee = source.coffee, coffee.archivedAt == nil,
               let method = source.method else { return nil }

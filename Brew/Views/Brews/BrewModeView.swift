@@ -146,7 +146,6 @@ struct BrewModeView: View {
         }
     }
 
-    /// "2 minutes, 45 seconds", not "2:45", which VoiceOver reads as a time of day.
     private func elapsedDescription(at date: Date) -> Text {
         let total = Int(brew.elapsedSeconds(at: date))
         return Text(Duration.seconds(total)

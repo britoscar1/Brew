@@ -88,7 +88,6 @@ final class BrewUITests: XCTestCase {
         app.buttons["coffee.archive"].tap()
         app.sheets.buttons["coffee.confirmArchive"].firstMatch.tap()
         app.tabBars.buttons["Brew"].tap()
-        // A running flow remains on screen until relaunch; recovery starts at the root.
         app.terminate()
         app.launch()
         let continueButton = app.buttons["pending.continue"]
