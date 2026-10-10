@@ -42,23 +42,13 @@ struct BrewView: View {
                     } description: {
                         Text("Add a coffee in your library first.")
                     }
-                } else {
+                } else if dynamicTypeSize.isAccessibilitySize {
                     ScrollView {
-                        VStack(spacing: spacing) {
-                            if let pending {
-                                unfinishedBrewCard(pending)
-                            }
-
-                            if coffees.isEmpty {
-                                Text("Restore a coffee in your library to start a new brew.")
-                                    .foregroundStyle(.secondary)
-                            } else {
-                                methodGrid
-                            }
-                        }
-                        .padding(16)
+                        brewOptions
                     }
                     .scrollBounceBehavior(.basedOnSize)
+                } else {
+                    brewOptions
                 }
             }
             .background(Color("CoffeeCanvas"))
@@ -77,6 +67,22 @@ struct BrewView: View {
             .navigationTitle("How are you brewing?")
             .navigationBarTitleDisplayMode(.inline)
         }
+    }
+
+    private var brewOptions: some View {
+        VStack(spacing: spacing) {
+            if let pending {
+                unfinishedBrewCard(pending)
+            }
+
+            if coffees.isEmpty {
+                Text("Restore a coffee in your library to start a new brew.")
+                    .foregroundStyle(.secondary)
+            } else {
+                methodGrid
+            }
+        }
+        .padding(16)
     }
 
     private var pending: Brew? {
@@ -172,7 +178,7 @@ private struct MethodCard: View {
 
             Spacer(minLength: 0)
         }
-        .frame(maxWidth: .infinity, minHeight: 180)
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
         .padding(.horizontal, 12)
         .padding(.vertical, 14)
         .background(Color("CoffeeCrema").opacity(0.2), in: RoundedRectangle(cornerRadius: 24))
