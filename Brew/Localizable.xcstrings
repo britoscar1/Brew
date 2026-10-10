@@ -1,6 +1,19 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
+    "#%lld" : {
+
+    },
+    "%@ · %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ · %2$@"
+          }
+        }
+      }
+    },
     "%@ than %@" : {
       "localizations" : {
         "en" : {
@@ -41,7 +54,11 @@
     "Add a coffee in your library first." : {
 
     },
+    "Add coffee" : {
+
+    },
     "Add Coffee" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -50,6 +67,15 @@
           }
         }
       }
+    },
+    "Add coffee and water, wetting all the grounds." : {
+
+    },
+    "Add the remaining water gently." : {
+
+    },
+    "Add water" : {
+
     },
     "Add your first coffee" : {
       "localizations" : {
@@ -74,6 +100,9 @@
     "AeroPress" : {
 
     },
+    "AeroPress starter" : {
+
+    },
     "After your brew on %@" : {
 
     },
@@ -93,13 +122,17 @@
     "Archived" : {
 
     },
-    "Archived Coffees" : {
+    "Archived coffees" : {
 
     },
     "Balanced" : {
 
     },
+    "Bean information" : {
+
+    },
     "Bean Information" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -112,6 +145,9 @@
     "Beverage" : {
 
     },
+    "Beverage target: %@" : {
+
+    },
     "Beverage yield" : {
 
     },
@@ -121,10 +157,13 @@
     "Bitterness" : {
 
     },
+    "Bloom" : {
+
+    },
     "Brew" : {
 
     },
-    "Brew History" : {
+    "Brew history" : {
 
     },
     "Brew settings" : {
@@ -146,10 +185,16 @@
         }
       }
     },
+    "Check yield" : {
+
+    },
     "Choose a coffee" : {
 
     },
     "Chooses this coffee to brew" : {
+
+    },
+    "Coarse" : {
 
     },
     "Coffee" : {
@@ -179,7 +224,19 @@
     "Continue" : {
 
     },
+    "Copied from %@" : {
+
+    },
+    "Copied recipe" : {
+
+    },
+    "Couldn't open your library" : {
+
+    },
     "Couldn't save brew" : {
+
+    },
+    "Couldn't save changes" : {
 
     },
     "Couldn't save coffee" : {
@@ -208,13 +265,25 @@
     "Decrease" : {
 
     },
+    "Discard" : {
+
+    },
+    "Discard this brew?" : {
+
+    },
     "Disliked" : {
+
+    },
+    "Distribute and tamp before starting. Start the timer with the pump." : {
 
     },
     "Done" : {
 
     },
     "Dose" : {
+
+    },
+    "Draw down" : {
 
     },
     "Edit" : {
@@ -227,7 +296,11 @@
         }
       }
     },
+    "Edit coffee" : {
+
+    },
     "Edit Coffee" : {
+      "extractionState" : "stale",
       "localizations" : {
         "en" : {
           "stringUnit" : {
@@ -237,22 +310,46 @@
         }
       }
     },
-    "Edit Evaluation" : {
+    "Edit evaluation" : {
+
+    },
+    "Elapsed time" : {
+
+    },
+    "Elapsed time, paused" : {
 
     },
     "Espresso" : {
 
     },
+    "Espresso starter" : {
+
+    },
     "Evaluate" : {
 
     },
+    "Extract" : {
+
+    },
+    "Final pour" : {
+
+    },
+    "Fine" : {
+
+    },
     "Finish" : {
+
+    },
+    "First pour" : {
 
     },
     "Flat" : {
 
     },
     "French Press" : {
+
+    },
+    "French Press starter" : {
 
     },
     "g" : {
@@ -301,6 +398,9 @@
     "Intense" : {
 
     },
+    "It was never finished, so it is not in your history. This cannot be undone." : {
+
+    },
     "Keep as is" : {
 
     },
@@ -329,6 +429,9 @@
     "Less bitter" : {
 
     },
+    "Let the water drain. Finish when the dripping slows." : {
+
+    },
     "Library" : {
 
     },
@@ -346,6 +449,12 @@
 
     },
     "Low" : {
+
+    },
+    "Lower the plunger gently and pour the coffee into your cup." : {
+
+    },
+    "Manual setup" : {
 
     },
     "Medium" : {
@@ -377,6 +486,9 @@
           }
         }
       }
+    },
+    "Medium-fine" : {
+
     },
     "min" : {
 
@@ -411,13 +523,20 @@
     "Next time" : {
 
     },
+    "Next: %@ at %@" : {
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "Next: %1$@ at %2$@"
+          }
+        }
+      }
+    },
     "No archived coffees" : {
 
     },
     "No brews logged yet." : {
-
-    },
-    "No change" : {
 
     },
     "No clear change" : {
@@ -426,7 +545,13 @@
     "No coffees yet" : {
 
     },
+    "No preference" : {
+
+    },
     "None" : {
+
+    },
+    "Not now" : {
 
     },
     "Notes" : {
@@ -500,6 +625,21 @@
     "Poor" : {
 
     },
+    "Position %lld" : {
+
+    },
+    "Pour slowly in circles to the cumulative water target." : {
+
+    },
+    "Press" : {
+
+    },
+    "Press and serve" : {
+
+    },
+    "Press gently and steadily. Stop when you hear the hiss." : {
+
+    },
     "Previously %@ · %@" : {
       "localizations" : {
         "en" : {
@@ -539,10 +679,28 @@
     "Recipe" : {
 
     },
+    "Recipe steps" : {
+
+    },
+    "Remove from Top 3" : {
+
+    },
     "Repeat brew" : {
 
     },
+    "Replace" : {
+
+    },
+    "Replace position %lld?" : {
+
+    },
+    "Replaces %@" : {
+
+    },
     "Restore" : {
+
+    },
+    "Restore a coffee in your library to start a new brew." : {
 
     },
     "Resume" : {
@@ -634,6 +792,24 @@
     "Start" : {
 
     },
+    "Starter recipes are a starting point. Review the amounts and grind for your equipment. Step targets follow your water and target time." : {
+
+    },
+    "Steep" : {
+
+    },
+    "Stir and steep" : {
+
+    },
+    "Stir gently and place the lid on without pressing." : {
+
+    },
+    "Stir gently, then insert the plunger slightly to limit dripping." : {
+
+    },
+    "Stop the pump at your beverage target. Time is a guide; finish when the shot is done." : {
+
+    },
     "Strength" : {
 
     },
@@ -646,10 +822,19 @@
     "Target time" : {
 
     },
+    "Target time reached. Finish when your coffee is ready." : {
+
+    },
     "Taste" : {
 
     },
+    "Taste notes (optional)" : {
+
+    },
     "Temperature" : {
+
+    },
+    "The brew there leaves the Top 3 and stays in your history." : {
 
     },
     "There isn't one clear adjustment based on this evaluation. Try repeating the brew once more before changing the recipe." : {
@@ -688,7 +873,25 @@
     "Timing" : {
 
     },
+    "Top 3" : {
+
+    },
+    "Top 3, position %lld" : {
+
+    },
+    "Top brews" : {
+
+    },
+    "Total water: %@" : {
+
+    },
+    "Try again" : {
+
+    },
     "Try the same brew again" : {
+
+    },
+    "Unfinished · %@" : {
 
     },
     "Unknown method" : {
@@ -707,7 +910,16 @@
     "Use" : {
 
     },
+    "Use 0–59 seconds and a total target up to 120 minutes. Leave target time empty if you don't need it." : {
+
+    },
+    "Use the upright position with a rinsed paper filter. Add coffee and water." : {
+
+    },
     "V60" : {
+
+    },
+    "V60 starter" : {
 
     },
     "Wanted to improve" : {
@@ -725,19 +937,25 @@
     "Weaker" : {
 
     },
+    "Wet all the grounds and let the coffee bloom." : {
+
+    },
     "What would you improve?" : {
 
     },
     "Why" : {
 
     },
-    "You can restore it later from Archived Coffees." : {
+    "You can restore it later from Archived coffees." : {
 
     },
     "You enjoyed this brew. Keep the current settings so you can reproduce it." : {
 
     },
     "Your brew couldn't be saved. Please try again." : {
+
+    },
+    "Your changes couldn't be saved. Please try again." : {
 
     },
     "Your coffee couldn't be saved. Please try again." : {
@@ -768,6 +986,9 @@
 
     },
     "Your feedback points in more than one direction, so there isn't one clear adjustment to recommend. Try repeating the brew once more before changing the recipe." : {
+
+    },
+    "Your saved data has not been deleted. Try opening your library again." : {
 
     }
   },
