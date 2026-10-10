@@ -54,8 +54,6 @@ struct RecommendationEngine {
             .allSatisfy { (1...5).contains($0) }
     }
 
-    // MARK: Goal matrix
-
     private func goalDecision(for goal: ImprovementGoal, input: RecommendationInput) -> RecommendationDecision {
         switch goal {
         case .lessAcidic: lessAcidic(input)
@@ -126,8 +124,6 @@ struct RecommendationEngine {
         return unclear(ruleID: .goalWeakerUnclear)
     }
 
-    // MARK: Automatic matrix
-
     private func automaticDecision(for input: RecommendationInput) -> RecommendationDecision {
         if input.overall >= 4 {
             return maintain(ruleID: .automaticPositive)
@@ -173,8 +169,6 @@ struct RecommendationEngine {
 
         return unclear(ruleID: .automaticUnclear)
     }
-
-    // MARK: Outcomes
 
     private func grind(_ direction: RecommendationDirection, ruleID: RecommendationRuleID,
                        input: RecommendationInput) -> RecommendationDecision {
@@ -246,7 +240,6 @@ struct RecommendationEngine {
         guard value.isFinite, value > 0 else { return nil }
         let factor = direction == .decrease ? 0.95 : 1.05
         var target = (value * factor / step).rounded() * step
-        // Even small doses must move in the direction named by the advice.
         if direction == .decrease, target >= value { target -= step }
         if direction == .increase, target <= value { target += step }
         return target.isFinite && target > 0 ? target : nil

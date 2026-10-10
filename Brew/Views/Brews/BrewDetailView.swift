@@ -160,8 +160,6 @@ struct BrewDetailView: View {
         repeatRequest = nil
     }
 
-    /// Absent for a brew with no coffee, and for an archived one: COF-04 keeps
-    /// its Top 3 readable, not editable.
     private var top: TopBrewsManager? {
         guard let coffee = brew.coffee, coffee.archivedAt == nil else { return nil }
         return TopBrewsManager(coffee: coffee)
@@ -210,8 +208,6 @@ struct BrewDetailView: View {
         BrewAdjustment(brew: brew)
     }
 
-    /// An archived coffee is out of the active library, so it cannot start a new
-    /// brew from its history either — COF-04 keeps its records, not its use.
     private var canRepeat: Bool {
         guard let coffee = brew.coffee else { return false }
         return coffee.archivedAt == nil && brew.method != nil

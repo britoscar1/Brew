@@ -8,7 +8,6 @@
 import SwiftUI
 import SwiftData
 
-
 struct BrewView: View {
     @Environment(\.modelContext) private var modelContext
     @Environment(\.dynamicTypeSize) private var dynamicTypeSize
@@ -80,8 +79,6 @@ struct BrewView: View {
         }
     }
 
-    /// Only the newest one: discarding it brings up the next, so they drain
-    /// instead of piling up behind a counter.
     private var pending: Brew? {
         InterruptedBrews.pending(in: brews).first
     }

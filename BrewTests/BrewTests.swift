@@ -435,8 +435,6 @@ private func completedBrew(method: BrewMethod = .v60, water: Double? = 250,
     #expect(TasteDimension.allCases.filter(\.isCumulative) == [.overall])
 }
 
-/// Returns the container too: a `ModelContext` does not keep its container
-/// alive, and using one whose container has been released traps inside SwiftData.
 @MainActor
 private func repeatContext() throws -> (ModelContainer, ModelContext, Coffee) {
     let schema = Schema([Coffee.self, Brew.self, TasteEvaluation.self, BrewRecommendation.self])
@@ -645,7 +643,6 @@ private struct BrewFields: Equatable {
     #expect(suggestion.source === last)
     #expect(suggestion.adjustment?.variable == .grind)
 
-    // Entering Brew Setup leaves the method defaults alone.
     #expect(setup.adjustment == nil)
     #expect(setup.coffeeGrams == BrewMethod.v60.defaults.coffeeGrams)
     #expect(setup.grindDisplayValue.isEmpty)
@@ -670,8 +667,6 @@ private struct BrewFields: Equatable {
     _ = container
 }
 
-/// A brew the person enjoyed must not be overruled by an older adjustment: the
-/// engine just told them to keep these settings.
 @Test @MainActor func aBrewYouLikedOffersToReproduceItself() throws {
     let (container, context, coffee) = try repeatContext()
     defer { withExtendedLifetime(container) {} }
@@ -698,7 +693,6 @@ private struct BrewFields: Equatable {
     _ = container
 }
 
-/// Feedback the engine cannot read is still advice: repeat it once more unchanged.
 @Test @MainActor func anUnclearEvaluationOffersTheSameBrewAgain() throws {
     let (container, context, coffee) = try repeatContext()
     defer { withExtendedLifetime(container) {} }
@@ -716,9 +710,6 @@ private struct BrewFields: Equatable {
     _ = container
 }
 
-// MARK: - Top 3
-
-/// Taste is not a requirement: a completed brew qualifies even unevaluated (TOP-01).
 @Test @MainActor func anUnevaluatedCompletedBrewCanJoinTheTop3() throws {
     let (container, context, coffee) = try repeatContext()
     defer { withExtendedLifetime(container) {} }
@@ -807,7 +798,6 @@ private struct BrewFields: Equatable {
     _ = container
 }
 
-/// Leaving the Top 3 is not deleting: the brew stays in the history (TOP-01).
 @Test @MainActor func leavingTheTop3KeepsTheBrewInTheHistory() throws {
     let (container, context, coffee) = try repeatContext()
     defer { withExtendedLifetime(container) {} }
@@ -838,7 +828,6 @@ private struct BrewFields: Equatable {
     _ = container
 }
 
-/// RPT-01 excludes the Top 3 position from what a repeat copies.
 @Test @MainActor func repeatingATopBrewDoesNotInheritItsPosition() throws {
     let (container, context, coffee) = try repeatContext()
     defer { withExtendedLifetime(container) {} }
@@ -852,8 +841,6 @@ private struct BrewFields: Equatable {
     #expect(best.topBrewRank == 1)
     _ = container
 }
-
-// MARK: - Interrupted brews
 
 @Test @MainActor func theNewestUnfinishedBrewComesUpFirst() throws {
     let (container, context, coffee) = try repeatContext()
@@ -870,7 +857,6 @@ private struct BrewFields: Equatable {
     _ = container
 }
 
-/// A running brew counts as pending too, not only a draft that never started.
 @Test @MainActor func aRunningBrewIsPendingUntilItIsFinished() throws {
     let (container, context, coffee) = try repeatContext()
     defer { withExtendedLifetime(container) {} }
@@ -899,7 +885,6 @@ private struct BrewFields: Equatable {
     _ = container
 }
 
-/// Discarding is the only deletion in the MVP, so it must not reach history.
 @Test @MainActor func afinishedBrewCannotBeDiscarded() throws {
     let (container, context, coffee) = try repeatContext()
     defer { withExtendedLifetime(container) {} }
