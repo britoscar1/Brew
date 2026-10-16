@@ -913,6 +913,9 @@
     "Use 0–59 seconds and a total target up to 120 minutes. Leave target time empty if you don't need it." : {
 
     },
+    "Use a temperature between 1 and 100 °C." : {
+
+    },
     "Use the upright position with a rinsed paper filter. Add coffee and water." : {
 
     },

@@ -145,14 +145,17 @@ final class BrewSetupViewModel {
         return yield / dose
     }
 
+    var hasInvalidTemperature: Bool {
+        guard let temperatureCelsius else { return false }
+        return !temperatureCelsius.isFinite || !(1...100).contains(temperatureCelsius)
+    }
+
     var canSave: Bool {
         guard coffee.archivedAt == nil,
               validAmount(coffeeGrams, maximum: 500),
               !grindDisplayValue.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty,
-              validTargetTime else { return false }
-
-        if let temperatureCelsius,
-           !temperatureCelsius.isFinite || !(1...100).contains(temperatureCelsius) { return false }
+              validTargetTime,
+              !hasInvalidTemperature else { return false }
 
         switch method {
         case .v60, .aeroPress, .frenchPress:

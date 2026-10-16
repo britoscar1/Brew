@@ -109,8 +109,15 @@ struct BrewSetupView: View {
             } header: {
                 Text("Dose")
             } footer: {
-                if let adjustment = setup.adjustment, adjustment.variable != .grind {
-                    adjustmentHint(adjustment)
+                VStack(alignment: .leading, spacing: 4) {
+                    if setup.hasInvalidTemperature {
+                        Text("Use a temperature between 1 and 100 °C.")
+                            .foregroundStyle(.red)
+                    }
+
+                    if let adjustment = setup.adjustment, adjustment.variable != .grind {
+                        adjustmentHint(adjustment)
+                    }
                 }
             }
 

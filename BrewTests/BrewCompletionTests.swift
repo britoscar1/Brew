@@ -94,6 +94,22 @@ private func testContainer(url: URL? = nil) throws -> ModelContainer {
     #expect(original.waterGrams == 250)
 }
 
+@Test @MainActor func anOutOfRangeTemperatureIsFlaggedAndBlocksSaving() throws {
+    let container = try testContainer()
+    let coffee = Coffee(name: "Test", origin: "Test", roastLevel: .medium)
+    container.mainContext.insert(coffee)
+    let setup = BrewSetupViewModel(coffee: coffee, method: .v60)
+    setup.grindDisplayValue = "20 clicks"
+    for invalid in [0.0, 101, 994, .nan, .infinity] {
+        setup.temperatureCelsius = invalid
+        #expect(setup.hasInvalidTemperature)
+        #expect(!setup.canSave)
+    }
+    setup.temperatureCelsius = 94
+    #expect(!setup.hasInvalidTemperature)
+    #expect(setup.canSave)
+}
+
 @Test @MainActor func invalidAmountsTemperatureAndTimeCannotBeSaved() throws {
     let container = try testContainer()
     let coffee = Coffee(name: "Test", origin: "Test", roastLevel: .medium)
